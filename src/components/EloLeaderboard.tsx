@@ -10,7 +10,7 @@ import { Crown, TrendingUp, User, Zap } from 'lucide-react'; // Added Zap for WP
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-const LEADERBOARD_LIMIT = 10; // Let's keep it to top 10
+const LEADERBOARD_LIMIT = 10; 
 
 export function EloLeaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -19,19 +19,20 @@ export function EloLeaderboard() {
   useEffect(() => {
     setIsLoading(true);
     const leaderboardRef = collection(db, 'leaderboardEntries');
+    // Query to get top 10 entries, sorted by Elo in descending order
     const q = query(leaderboardRef, orderBy('elo', 'desc'), limit(LEADERBOARD_LIMIT));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedEntries: LeaderboardEntry[] = [];
       querySnapshot.forEach((doc, index) => {
-        const data = doc.data() as Omit<LeaderboardEntry, 'id'>;
+        const data = doc.data() as Omit<LeaderboardEntry, 'id' | 'rank'>; // Assuming rank is client-side
         fetchedEntries.push({
-          id: doc.id, // Username is the id
-          rank: index + 1,
-          username: data.username,
+          id: doc.id, // Document ID (normalized username)
+          rank: index + 1, // Assign rank based on sorted order
+          username: data.username, // Display username from Firestore
           elo: data.elo,
           highestWpm: data.highestWpm,
-          // No avatarUrl or isCurrentUser concept here for anonymous leaderboard
+          timestamp: data.timestamp,
         });
       });
       setLeaderboard(fetchedEntries);
@@ -39,10 +40,9 @@ export function EloLeaderboard() {
     }, (error) => {
       console.error("Error fetching leaderboard:", error);
       setIsLoading(false);
-      // Handle error, maybe show a message
     });
 
-    return () => unsubscribe(); // Clean up listener on component unmount
+    return () => unsubscribe(); 
   }, []);
 
   if (isLoading) {
@@ -99,6 +99,8 @@ export function EloLeaderboard() {
               ? <Crown className="w-4 h-4 inline-block text-accent" />
               : (Number.isFinite(entry.rank) ? entry.rank : '-');
 
+            const displayName = entry.username || 'Anonymous';
+
             return (
               <li 
                 key={entry.id} 
@@ -111,8 +113,8 @@ export function EloLeaderboard() {
                   )}>
                     {rankDisplay}
                   </span>
-                  <User className="w-4 h-4 text-muted-foreground flex-shrink-0" /> {/* Generic user icon */}
-                  <span className="font-medium truncate" title={entry.username}>{entry.username || 'Anonymous'}</span>
+                  <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <span className="font-medium truncate" title={displayName}>{displayName}</span>
                 </div>
                 <div className="flex items-center space-x-3 flex-shrink-0">
                   <span className="font-bold text-primary text-right w-12">
