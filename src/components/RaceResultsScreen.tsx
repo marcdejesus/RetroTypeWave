@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Corrected path
 
 interface RaceResultsScreenProps {
   results: PlayerStats[];
