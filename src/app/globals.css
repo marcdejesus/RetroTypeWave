@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,97 +9,98 @@ body {
 
 @layer base {
   :root {
-    /* Dark Retro Theme */
-    --background: 250 30% 12%; /* Dark Indigo/Purple */
-    --foreground: 55 90% 85%; /* Pale Yellow/Cream */
+    /* Miami Vice Dark Theme */
+    --background: 220 40% 10%; /* Deep Navy Blue */
+    --foreground: 180 80% 90%; /* Light Cyan/Aqua */
 
-    --card: 250 30% 18%; /* Darker Indigo/Purple */
-    --card-foreground: 55 90% 85%;
+    --card: 220 40% 15%; /* Slightly Lighter Navy */
+    --card-foreground: 180 80% 90%;
 
-    --popover: 250 30% 15%;
-    --popover-foreground: 55 90% 85%;
+    --popover: 220 40% 12%;
+    --popover-foreground: 180 80% 90%;
 
-    --primary: 180 90% 50%; /* Bright Cyan */
-    --primary-foreground: 250 30% 5%; /* Very Dark Purple/Almost Black */
-
-    --secondary: 320 90% 60%; /* Bright Magenta/Pink */
-    --secondary-foreground: 250 30% 5%;
-
-    --muted: 250 20% 25%;
-    --muted-foreground: 250 20% 60%;
-
-    --accent: 90 90% 50%; /* Bright Lime Green */
-    --accent-foreground: 250 30% 5%;
-
-    --destructive: 0 80% 55%; /* Bright Red */
-    --destructive-foreground: 0 0% 100%; /* White */
-
-    --border: 250 20% 30%;
-    --input: 250 25% 20%;
-    --ring: 180 90% 50%; /* Primary Cyan for focus rings */
-    
-    --chart-1: 180 90% 50%; /* Cyan */
-    --chart-2: 90 90% 50%;  /* Green */
-    --chart-3: 320 90% 60%; /* Magenta */
-    --chart-4: 30 100% 60%; /* Bright Orange */
-    --chart-5: 55 100% 60%; /* Bright Yellow */
-
-    --radius: 0.125rem; /* Sharper corners */
-
-    /* Sidebar colors to match dark retro theme */
-    --sidebar-background: 250 30% 15%;
-    --sidebar-foreground: 55 90% 85%;
-    --sidebar-primary: 180 90% 50%;
-    --sidebar-primary-foreground: 250 30% 5%;
-    --sidebar-accent: 90 90% 50%;
-    --sidebar-accent-foreground: 250 30% 5%;
-    --sidebar-border: 250 20% 30%;
-    --sidebar-ring: 180 90% 50%;
-  }
-
-  .dark { /* Light Retro Theme (using .dark selector for now) */
-    --background: 55 50% 92%; /* Very Light Yellow/Cream */
-    --foreground: 250 40% 15%; /* Dark Purple */
-
-    --card: 55 50% 96%;
-    --card-foreground: 250 40% 15%;
-
-    --popover: 55 50% 96%;
-    --popover-foreground: 250 40% 15%;
-
-    --primary: 180 90% 45%; /* Slightly darker Cyan */
+    --primary: 325 90% 60%; /* Hot Pink */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 320 90% 55%; /* Slightly darker Magenta */
+    --secondary: 170 80% 45%; /* Teal */
     --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 55 30% 85%;
-    --muted-foreground: 250 25% 40%;
+    --muted: 220 30% 25%;
+    --muted-foreground: 220 20% 65%;
 
-    --accent: 90 80% 45%; /* Slightly darker Green */
-    --accent-foreground: 250 40% 10%; /* Very Dark Purple */
+    --accent: 35 100% 55%; /* Bright Orange/Sunset */
+    --accent-foreground: 220 40% 5%; /* Very Dark Blue for contrast */
 
-    --destructive: 0 70% 50%; /* Slightly darker Red */
+    --destructive: 0 70% 50%; /* Red */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    --border: 220 30% 30%;
+    --input: 220 35% 20%;
+    --ring: 325 90% 60%; /* Hot Pink for focus rings */
+    
+    --chart-1: 325 90% 60%; /* Hot Pink */
+    --chart-2: 170 80% 45%;  /* Teal */
+    --chart-3: 35 100% 55%; /* Orange */
+    --chart-4: 270 80% 65%; /* Purple */
+    --chart-5: 50 100% 60%; /* Yellow */
+
+    --radius: 0.25rem; /* Slightly more rounded, but still sharpish */
+
+    /* Sidebar colors to match Miami Vice theme */
+    --sidebar-background: 220 40% 12%; /* Matching popover */
+    --sidebar-foreground: 180 80% 90%; /* Light Cyan/Aqua */
+    --sidebar-primary: 325 90% 60%; /* Hot Pink */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 170 80% 45%; /* Teal */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
+    --sidebar-border: 220 30% 25%;
+    --sidebar-ring: 325 90% 60%;
+  }
+
+  .dark { /* Miami Vice Light Theme */
+    --background: 30 100% 97%; /* Very Light Peach/Cream */
+    --foreground: 220 50% 25%; /* Dark Slate Blue */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 220 50% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 50% 25%;
+
+    --primary: 325 80% 65%; /* Softer Pink */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 170 70% 55%; /* Softer Teal */
+    --secondary-foreground: 0 0% 100%; /* White */
+
+    --muted: 30 50% 90%; /* Light Peach */
+    --muted-foreground: 220 30% 50%;
+
+    --accent: 35 90% 65%; /* Softer Orange */
+    --accent-foreground: 220 50% 15%; /* Darker Blue for contrast */
+
+    --destructive: 0 60% 60%; /* Softer Red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 55 20% 75%;
+    --border: 30 30% 80%;
     --input: 0 0% 100%; /* White input */
-    --ring: 180 90% 45%;
+    --ring: 325 80% 65%; /* Softer Pink */
     
-    --chart-1: 180 90% 45%;
-    --chart-2: 90 80% 45%;
-    --chart-3: 320 90% 55%;
-    --chart-4: 30 90% 55%;
-    --chart-5: 55 90% 55%;
+    --chart-1: 325 80% 65%; /* Softer Pink */
+    --chart-2: 170 70% 55%;  /* Softer Teal */
+    --chart-3: 35 90% 65%; /* Softer Orange */
+    --chart-4: 270 70% 70%; /* Lighter Purple */
+    --chart-5: 50 90% 65%; /* Softer Yellow */
 
-    --sidebar-background: 55 50% 90%;
-    --sidebar-foreground: 250 40% 15%;
-    --sidebar-primary: 180 90% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 90 80% 45%;
-    --sidebar-accent-foreground: 250 40% 10%;
-    --sidebar-border: 55 20% 75%;
-    --sidebar-ring: 180 90% 45%;
+    /* Sidebar colors for light theme */
+    --sidebar-background: 0 0% 98%; /* Off-white */
+    --sidebar-foreground: 220 50% 25%; /* Dark Slate Blue */
+    --sidebar-primary: 325 80% 65%; /* Softer Pink */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 170 70% 55%; /* Softer Teal */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
+    --sidebar-border: 30 30% 85%;
+    --sidebar-ring: 325 80% 65%;
   }
 }
 
