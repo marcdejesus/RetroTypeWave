@@ -12,10 +12,10 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-14 items-center px-4">
+      <div className="container flex h-20 items-center px-4"> {/* Increased header height to accommodate larger logo */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
           {/* Replace BotMessageSquare icon with Image component */}
-          <Image src="/logo.png" alt="Retro Type Wave Logo" width={36} height={36} className="text-primary" />
+          <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
           <span className="font-bold sm:inline-block text-lg">
             Retro Type Wave
           </span>
@@ -42,3 +42,4 @@ export function SiteHeader() {
     </header>
   );
 }
+
