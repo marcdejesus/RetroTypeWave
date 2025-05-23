@@ -2,54 +2,52 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Twitter, Instagram, Github, Linkedin, UserCircle } from 'lucide-react'; // Added UserCircle as a generic icon
+import { Twitter, Instagram, Github, Linkedin, UserCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button'; // For styling the anchor like a button
 
 interface SocialLinkProps {
   href: string;
   icon: React.ElementType;
-  label: string;
-  ariaLabel: string;
+  label: string; // Still useful for aria-label
 }
 
-const SocialLink: React.FC<SocialLinkProps> = ({ href, icon: Icon, label, ariaLabel }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label={ariaLabel}
-    className="w-full"
-  >
-    <Button variant="outline" className="w-full justify-start text-sm py-3 h-auto border-primary/30 hover:bg-primary/10">
-      <Icon className="w-4 h-4 mr-3 text-accent" />
-      {label}
-    </Button>
-  </a>
-);
+const socialLinks: SocialLinkProps[] = [
+  { href: "https://twitter.com/yourprofile", icon: Twitter, label: "Twitter" },
+  { href: "https://instagram.com/yourprofile", icon: Instagram, label: "Instagram" },
+  { href: "https://github.com/yourprofile", icon: Github, label: "GitHub" },
+  { href: "https://linkedin.com/in/yourprofile", icon: Linkedin, label: "LinkedIn" },
+];
 
 export function SocialMediaLinks() {
-  // Replace with your actual social media links
-  const socialLinks: SocialLinkProps[] = [
-    { href: "https://twitter.com/yourprofile", icon: Twitter, label: "Twitter / X", ariaLabel: "Follow on Twitter" },
-    { href: "https://instagram.com/yourprofile", icon: Instagram, label: "Instagram", ariaLabel: "Follow on Instagram" },
-    { href: "https://github.com/yourprofile", icon: Github, label: "GitHub", ariaLabel: "Check out GitHub" },
-    { href: "https://linkedin.com/in/yourprofile", icon: Linkedin, label: "LinkedIn", ariaLabel: "Connect on LinkedIn" },
-  ];
-
   return (
     <Card className="h-full border-primary/30 shadow-md flex flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-lg text-primary">
-          <UserCircle className="w-5 h-5 mr-2" /> {/* Using UserCircle for "Follow Me" */}
+          <UserCircle className="w-5 h-5 mr-2" />
           Connect With Me
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col space-y-2 p-3 text-sm text-foreground">
-        {socialLinks.map((link) => (
-          <SocialLink key={link.label} {...link} />
-        ))}
-         <p className="text-xs text-muted-foreground pt-2 text-center">
-            Let's connect and build cool things together!
+      <CardContent className="flex-1 flex flex-col justify-center items-center p-3 text-sm text-foreground">
+        <div className="flex space-x-4">
+          {socialLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Follow on ${link.label}`}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'rounded-full border border-primary/30 hover:bg-primary/10 hover:border-primary text-accent'
+              )}
+            >
+              <link.icon className="w-5 h-5" />
+            </a>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground mt-4 text-center">
+          Let's connect and build cool things together!
         </p>
       </CardContent>
     </Card>
