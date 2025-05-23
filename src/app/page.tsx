@@ -19,18 +19,26 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
-      <Card className="w-full max-w-md"> {/* Removed shadow-xl */}
+    <div
+      className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/retrowave-background.gif')" }} // Placeholder for your GIF
+      data-ai-hint="retrowave city sunset"
+    >
+      {/* Adding a semi-transparent overlay to make the card more readable over the GIF */}
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm"></div>
+      
+      {/* Card needs to be above the overlay */}
+      <Card className="w-full max-w-md z-10 bg-card/80 backdrop-blur-md border-primary/50">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Zap className="w-16 h-16 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">Welcome to Retro Type Wave!</CardTitle>
-          <CardDescription className="text-lg">Choose your race duration and test your typing speed.</CardDescription>
+          <CardDescription className="text-lg text-card-foreground/90">Choose your race duration and test your typing speed.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="duration" className="text-base font-semibold flex items-center">
+            <Label htmlFor="duration" className="text-base font-semibold flex items-center text-card-foreground">
               <Clock className="w-5 h-5 mr-2 text-primary" />
               Race Duration
             </Label>
@@ -45,7 +53,7 @@ export default function HomePage() {
                   <RadioGroupItem value={duration.toString()} id={`duration-${duration}`} className="sr-only" />
                   <Label
                     htmlFor={`duration-${duration}`}
-                    className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer ${selectedDuration === duration.toString() ? 'border-primary ring-2 ring-primary' : ''}`}
+                    className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover/80 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer text-popover-foreground ${selectedDuration === duration.toString() ? 'border-primary ring-2 ring-primary' : 'border-border/70'}`}
                   >
                     <span className="text-xl font-bold">{duration}</span>
                     <span className="text-xs">seconds</span>
