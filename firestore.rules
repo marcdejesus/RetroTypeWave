@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow anyone to read leaderboard entries
+    match /leaderboardEntries/{userId} {
+      allow read: if true;
+      
+      // Allow users to create/update their own entry with validation
+      allow write: if
+        // Validate the data structure
+        request.resource.data.keys().hasAll(['username', 'elo', 'highestWpm', 'timestamp']) &&
+        
+        // Validate data types
+        request.resource.data.username is string &&
+        request.resource.data.elo is number &&
+        request.resource.data.highestWpm is number &&
+        request.resource.data.timestamp is timestamp &&
+        
+        // Validate username
+        request.resource.data.username.trim().size() > 0 &&
+        request.resource.data.username.size() <= 30 &&
+        
+        // Validate score ranges
+        request.resource.data.elo >= 0 &&
+        request.resource.data.elo <= 5000 &&
+        request.resource.data.highestWpm >= 0 &&
+        request.resource.data.highestWpm <= 500 &&
+        
+        // For updates, ensure WPM is higher than existing
+        (!exists(/databases/$(database)/documents/leaderboardEntries/$(userId)) ||
+         request.resource.data.highestWpm > resource.data.highestWpm);
+    }
+
+    // IMPORTANT: This is a catch-all rule.
+    // By default, if no other rule matches, access is denied.
+    // For any other collections you might add, you'll need specific rules.
+    // match /{document=**} {
+    //   allow read, write: if false; // Keep this if you want to default deny
+    // }
+  }
+}
