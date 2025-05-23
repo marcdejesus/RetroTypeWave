@@ -20,7 +20,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center justify-between px-4">
+      <div className="container flex h-20 items-center px-4"> {/* Removed justify-between */}
         <Link href="/" className="flex items-center space-x-2">
           <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
           <span className="font-bold sm:inline-block text-lg hidden md:block">
@@ -28,7 +28,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center space-x-2 md:space-x-4">
+        <nav className="flex-1 flex justify-center items-center space-x-2 md:space-x-4"> {/* Added flex-1 and justify-center */}
           {navLinks.map((link) => (
             <Link
               key={link.name}
