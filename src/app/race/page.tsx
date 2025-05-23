@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { PlayerProgressDisplay } from '@/components/PlayerProgressDisplay';
 import { RaceResultsScreen } from '@/components/RaceResultsScreen';
+import { RaceTrackDisplay } from '@/components/RaceTrackDisplay'; // Added import
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, TimerIcon, Zap, Percent, Keyboard } from 'lucide-react';
@@ -52,6 +53,7 @@ function RacePageContent() {
   useEffect(() => {
     if (eloLoading || currentUserElo === null) return;
 
+    // Prevent re-initialization if race is ongoing/finished and elo updates
     if (initializedForDurationRef.current === raceDuration && raceStatus !== 'waiting') {
         setPlayers(prevPlayers => prevPlayers.map(p => {
             if (p.id === userPlayerId && p.elo !== currentUserElo) {
@@ -82,15 +84,16 @@ function RacePageContent() {
       id: `bot-${index}`,
       name,
       isBot: true,
-      wpm: 0, 
-      accuracy: 95, 
+      wpm: 0, // Base WPM will be set after simulation
+      accuracy: 90 + Math.floor(Math.random() * 10), // Randomize bot accuracy slightly
       progress: 0,
       avatarUrl: AVATAR_PLACEHOLDER_URL(name),
-      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100),
+      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100), // Bot ELO relative to user
     }));
 
     setPlayers([user, ...initialBots]);
     
+    // Reset all race-specific states
     setRaceStatus('waiting');
     setUserInput('');
     setCurrentWordIndex(0);
@@ -105,17 +108,20 @@ function RacePageContent() {
 
     initializedForDurationRef.current = raceDuration;
 
-  }, [eloLoading, currentUserElo, raceDuration, userPlayerId]);
+  }, [eloLoading, currentUserElo, raceDuration]);
 
 
   const startCountdown = useCallback(async () => {
     if (players.length === 0 || raceStatus !== 'waiting' || currentUserElo === null || currentRacePrompt.length === 0) return;
     setRaceStatus('countdown');
     setCountdown(COUNTDOWN_SECONDS);
-    inputRef.current?.focus();
+    if (inputRef.current) {
+        inputRef.current.focus();
+    }
+
 
     const botPlayers = players.filter(p => p.isBot);
-    const userWpmForBotSim = players.find(p => !p.isBot)?.wpm || 40; 
+    const userWpmForBotSim = players.find(p => !p.isBot)?.wpm || 40; // Use a baseline if user WPM is 0
 
     try {
         const botSpeedPromises = botPlayers.map(bot =>
@@ -160,9 +166,13 @@ function RacePageContent() {
         setRaceStatus('racing');
         raceStartTimeRef.current = Date.now();
         setTimeLeft(raceDuration);
-        inputRef.current?.focus();
+        if (inputRef.current) { // Ensure focus after countdown
+            inputRef.current.focus();
+        }
       }
-      return () => timerRef.current && clearTimeout(timerRef.current);
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      }
     }
   }, [raceStatus, countdown, raceDuration]);
 
@@ -176,7 +186,7 @@ function RacePageContent() {
         setTimeLeft(prevTime => {
           const newTimeLeft = raceDuration - elapsedTimeSeconds;
           if (newTimeLeft <= 0) {
-            clearInterval(timerRef.current!);
+            if(timerRef.current) clearInterval(timerRef.current);
             setRaceStatus('finished');
             return 0;
           }
@@ -185,8 +195,8 @@ function RacePageContent() {
 
         setPlayers(prevPlayers => prevPlayers.map(p => {
           if (p.isBot && p.progress < 100) {
-            const charsToType = p.wpm * 5; 
-            const charsPerSecond = charsToType / 60;
+            const charsToTypePerMinute = (p.wpm || 30) * 5; 
+            const charsPerSecond = charsToTypePerMinute / 60;
             const botTypedChars = charsPerSecond * elapsedTimeSeconds;
             const progress = Math.min(100, (botTypedChars / currentRacePrompt.length) * 100);
             return { ...p, progress };
@@ -194,7 +204,9 @@ function RacePageContent() {
           return p;
         }));
       }, 100); 
-      return () => timerRef.current && clearInterval(timerRef.current);
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      }
     }
   }, [raceStatus, raceDuration, currentRacePrompt]);
 
@@ -228,7 +240,19 @@ function RacePageContent() {
       if (p.id === userPlayerId) {
         const wpm = calculateCurrentWpm();
         const accuracy = calculateCurrentAccuracy();
-        const currentTypedCharsTotal = promptWords.current.slice(0, currentWordIndex).join(' ').length + (currentWordIndex > 0 ? 1 : 0) + userInput.length;
+        const completedChars = promptWords.current.slice(0, currentWordIndex).join(' ').length + (currentWordIndex > 0 ? 1 : 0);
+        let currentWordProgressChars = 0;
+        if (currentWordIndex < promptWords.current.length) {
+            const currentWordVal = promptWords.current[currentWordIndex];
+            for(let i=0; i < userInput.length; i++) {
+                if (userInput[i] === currentWordVal[i]) {
+                    currentWordProgressChars++;
+                } else {
+                    break;
+                }
+            }
+        }
+        const currentTypedCharsTotal = completedChars + currentWordProgressChars;
         const progress = (currentTypedCharsTotal / currentRacePrompt.length) * 100;
         return { ...p, wpm, accuracy: Math.max(0, Math.min(100, accuracy)), progress: Math.min(100, progress) };
       }
@@ -242,9 +266,9 @@ function RacePageContent() {
     
     let correctCharsForWpm = typedCharsCorrectRef.current;
     if (!finishedRace && currentWordIndex < promptWords.current.length) {
-        const currentPromptWord = promptWords.current[currentWordIndex];
+        const currentPromptWordVal = promptWords.current[currentWordIndex];
         for (let i = 0; i < userInput.length; i++) {
-            if (userInput[i] === currentPromptWord[i]) {
+            if (userInput[i] === currentPromptWordVal[i]) {
                 correctCharsForWpm++;
             } else {
                 break; 
@@ -257,26 +281,35 @@ function RacePageContent() {
   };
 
   const calculateCurrentAccuracy = () => {
-    if (totalTypedCharsRef.current === 0) return 100;
-    let effectiveCorrectChars = 0;
-    const completedWords = promptWords.current.slice(0, currentWordIndex);
-    completedWords.forEach(word => effectiveCorrectChars += word.length +1); // +1 for space
+    let correctChars = 0;
+    let totalCharsAttempted = 0;
 
-    if (currentWordIndex < promptWords.current.length) {
-      const currentWord = promptWords.current[currentWordIndex];
-      for(let i=0; i < userInput.length; i++) {
-        if (userInput[i] === currentWord[i]) {
-          effectiveCorrectChars++;
-        }
-      }
+    // Count correct characters from completed words
+    for (let i = 0; i < currentWordIndex; i++) {
+        correctChars += promptWords.current[i].length + 1; // +1 for space
+        totalCharsAttempted += promptWords.current[i].length + 1;
     }
-    // totalTypedCharsRef is a raw count of key presses including errors/backspaces
-    // For a more standard accuracy, we should count how many characters *should* have been typed vs how many *were* typed correctly.
-    // Let's use a simpler version: correctly typed characters (from completed words + current prefix) / total characters typed by user for those words.
-    const charsInAttemptedWords = promptWords.current.slice(0, currentWordIndex + 1).join(" ").length;
-    const accuracy = Math.round((typedCharsCorrectRef.current / (charsInAttemptedWords > 0 ? Math.max(typedCharsCorrectRef.current, totalTypedCharsRef.current, 1) : 1)) * 100);
-    return Math.max(0, Math.min(100, accuracy));
 
+    // Count correct characters from the current word being typed
+    if (currentWordIndex < promptWords.current.length) {
+        const currentWordVal = promptWords.current[currentWordIndex];
+        for (let i = 0; i < userInput.length; i++) {
+            if (userInput[i] === currentWordVal[i]) {
+                correctChars++;
+            }
+            totalCharsAttempted++;
+        }
+        if (userInput.length > currentWordVal.length) { // User typed more than the word
+            totalCharsAttempted += (userInput.length - currentWordVal.length);
+        }
+    }
+    
+    if (totalTypedCharsRef.current === 0 && totalCharsAttempted === 0) return 100; // Avoid division by zero if no input yet
+    // Use total key presses as a denominator for a more "raw" accuracy, 
+    // or totalCharsAttempted for a more "standard" one.
+    // Let's use totalTypedCharsRef for a stricter accuracy.
+    const accuracy = Math.round((correctChars / Math.max(totalTypedCharsRef.current, totalCharsAttempted, 1)) * 100);
+    return Math.max(0, Math.min(100, accuracy));
   };
 
 
@@ -290,18 +323,21 @@ function RacePageContent() {
 
         const finalPlayersState = currentPlayers.map(p => {
           if (p.id === userPlayerId) {
-            return { ...p, finalWpm: finalUserWpm, finalAccuracy: finalUserAccuracy, wpm: finalUserWpm, accuracy: finalUserAccuracy, progress: Math.max(p.progress, (typedCharsCorrectRef.current/currentRacePrompt.length)*100) };
+            const userCompletedPrompt = currentWordIndex >= promptWords.current.length;
+            const finalProgress = userCompletedPrompt ? 100 : p.progress;
+            return { ...p, finalWpm: finalUserWpm, finalAccuracy: finalUserAccuracy, wpm: finalUserWpm, accuracy: finalUserAccuracy, progress: finalProgress };
           }
-          return { ...p, finalWpm: p.wpm, finalAccuracy: p.accuracy };
+          return { ...p, finalWpm: p.wpm, finalAccuracy: p.accuracy, progress: Math.min(100, p.progress) };
         });
         
         const rankedPlayers = [...finalPlayersState].sort((a, b) => {
-          const aScore = (a.finalWpm ?? 0) * ((a.finalAccuracy ?? 0) / 100) * (a.progress / 100);
-          const bScore = (b.finalWpm ?? 0) * ((b.finalAccuracy ?? 0) / 100) * (b.progress / 100);
-          if (b.progress === 100 && a.progress < 100) return 1; 
-          if (a.progress === 100 && b.progress < 100) return -1;
-          if (bScore !== aScore) return bScore - aScore;
-          return (b.finalAccuracy ?? 0) - (a.finalAccuracy ?? 0); 
+          if (b.progress !== a.progress) return (b.progress ?? 0) - (a.progress ?? 0);
+          const aWpm = a.finalWpm ?? a.wpm ?? 0;
+          const bWpm = b.finalWpm ?? b.wpm ?? 0;
+          if (bWpm !== aWpm) return bWpm - aWpm;
+          const aAcc = a.finalAccuracy ?? a.accuracy ?? 0;
+          const bAcc = b.finalAccuracy ?? b.accuracy ?? 0;
+          return bAcc - aAcc;
         }).map((player, index) => ({ ...player, rank: index + 1 }));
 
         const userResult = rankedPlayers.find(p => !p.isBot);
@@ -333,13 +369,19 @@ function RacePageContent() {
         return rankedPlayers;
       });
     }
-  }, [raceStatus, resultsCalculated, currentUserElo, players, updateUserElo, userPlayerId, raceDuration, currentRacePrompt]);
+  }, [raceStatus, resultsCalculated, currentUserElo, players, updateUserElo, userPlayerId, raceDuration, currentRacePrompt, currentWordIndex]);
 
   
   const getHighlightedPrompt = () => {
-    if (currentWordIndex >= promptWords.current.length || currentRacePrompt.length === 0) {
+    if (currentRacePrompt.length === 0) return "Loading prompt...";
+    if (currentWordIndex >= promptWords.current.length && raceStatus === 'racing') { // If prompt is finished during race
+        setRaceStatus('finished'); // Trigger end of race immediately
         return <span className="text-accent">Prompt completed!</span>;
     }
+    if (currentWordIndex >= promptWords.current.length ) {
+      return <span className="text-accent">Prompt completed!</span>;
+    }
+
     let completedText = promptWords.current.slice(0, currentWordIndex).join(' ') + (currentWordIndex > 0 ? ' ' : '');
     let currentWordText = promptWords.current[currentWordIndex] || '';
     let futureText = promptWords.current.slice(currentWordIndex + 1).join(' ');
@@ -362,18 +404,15 @@ function RacePageContent() {
             {char}
           </span>
         ))}
-        {currentWordText && <span className="text-foreground">&nbsp;</span>}
+        {currentWordText && <span className="text-foreground">&nbsp;</span>} {/* Ensure space after current word if it's not the last */}
         <span className="text-muted-foreground">{futureText}</span>
       </>
     );
   };
 
   const handlePlayAgain = () => {
-    // Reset relevant states for a new race, prompt will regenerate in useEffect
-    initializedForDurationRef.current = null; // Force re-initialization
-    // Trigger re-initialization effect by changing a dependency or manually resetting
-    // Forcing a re-render or navigating to the same page with a query to trigger effect
-    router.push(`/race?duration=${raceDuration}&refresh=${Math.random()}`); // Add random query to force re-render
+    initializedForDurationRef.current = null; 
+    router.push(`/race?duration=${raceDuration}&refresh=${Math.random()}`); 
   };
 
   const handleGoHome = () => {
@@ -419,31 +458,31 @@ function RacePageContent() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl flex items-center">
-            <Keyboard className="w-7 h-7 mr-3 text-primary" /> Type The Prompt
+        <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4">
+          <CardTitle className="text-xl sm:text-2xl flex items-center">
+            <Keyboard className="w-6 h-6 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-primary" /> Type The Prompt
           </CardTitle>
-          <div className="flex items-center space-x-4 text-lg">
-            <div className="flex items-center text-accent-foreground bg-accent px-3 py-1 rounded-md">
-              <TimerIcon className="w-5 h-5 mr-2" />
+          <div className="flex items-center space-x-2 sm:space-x-4 text-sm sm:text-lg">
+            <div className="flex items-center text-accent-foreground bg-accent px-2 sm:px-3 py-1 rounded-md">
+              <TimerIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
               <span>{Math.ceil(timeLeft)}s</span>
             </div>
              {raceStatus === 'racing' && userPlayerId && players.find(p=>p.id === userPlayerId) && 
               <>
                 <div className="flex items-center text-primary">
-                  <Zap className="w-5 h-5 mr-1" /> {Math.round(players.find(p=>p.id === userPlayerId)!.wpm)} WPM
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-0.5 sm:mr-1" /> {Math.round(players.find(p=>p.id === userPlayerId)!.wpm)} WPM
                 </div>
                 <div className="flex items-center text-primary">
-                  <Percent className="w-5 h-5 mr-1" /> {Math.round(players.find(p=>p.id === userPlayerId)!.accuracy)}%
+                  <Percent className="w-4 h-4 sm:w-5 sm:h-5 mr-0.5 sm:mr-1" /> {Math.round(players.find(p=>p.id === userPlayerId)!.accuracy)}%
                 </div>
               </>
              }
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-xl p-4 border rounded-md min-h-[120px] bg-background leading-relaxed shadow-inner select-none whitespace-pre-wrap font-mono">
+        <CardContent className="pt-2">
+          <div className="text-lg sm:text-xl p-3 sm:p-4 border rounded-md min-h-[100px] sm:min-h-[120px] bg-background leading-relaxed shadow-inner select-none whitespace-pre-wrap font-mono">
             {raceStatus === 'countdown' ? (
-              <div className="text-6xl font-bold text-primary text-center animate-pulse">{countdown > 0 ? countdown : "Go!"}</div>
+              <div className="text-5xl sm:text-6xl font-bold text-primary text-center animate-pulse">{countdown > 0 ? countdown : "Go!"}</div>
             ) : (
               getHighlightedPrompt()
             )}
@@ -453,27 +492,32 @@ function RacePageContent() {
             value={userInput}
             onChange={handleUserInputChange}
             placeholder={raceStatus === 'racing' ? "Start typing here..." : raceStatus === 'countdown' ? "Get ready..." : "Click Start Race to begin..."}
-            className="mt-4 text-lg p-3 font-mono"
+            className="mt-4 text-base sm:text-lg p-2 sm:p-3 font-mono"
             disabled={raceStatus !== 'racing' || currentWordIndex >= promptWords.current.length || currentRacePrompt.length === 0}
             rows={2}
-            autoFocus={raceStatus === 'racing'}
+            autoFocus={raceStatus === 'racing' || raceStatus === 'countdown'}
           />
         </CardContent>
       </Card>
 
       {raceStatus === 'waiting' && (
-        <Button onClick={startCountdown} size="lg" className="w-full py-6 text-xl" disabled={eloLoading || currentUserElo === null || players.length === 0 || currentRacePrompt.length === 0}>
-          <Zap className="mr-2 h-6 w-6" /> Start Race
+        <Button onClick={startCountdown} size="lg" className="w-full py-5 sm:py-6 text-lg sm:text-xl" disabled={eloLoading || currentUserElo === null || players.length === 0 || currentRacePrompt.length === 0}>
+          <Zap className="mr-2 h-5 w-5 sm:h-6 sm:w-6" /> Start Race
         </Button>
       )}
 
-      {(raceStatus === 'racing' || raceStatus === 'finished' || raceStatus === 'countdown') && players.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {(raceStatus === 'racing' || raceStatus === 'countdown' || (raceStatus === 'finished' && !resultsCalculated)) && players.length > 0 && (
+        <RaceTrackDisplay players={players} userPlayerId={userPlayerId} />
+      )}
+      
+      {/* Detailed Player Progress Cards are hidden by default, can be enabled for debugging or different UI */}
+      {/* {(raceStatus === 'racing' || raceStatus === 'finished' || raceStatus === 'countdown') && players.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {players.map(player => (
             <PlayerProgressDisplay key={player.id} player={player} isCurrentUser={player.id === userPlayerId} />
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }
@@ -485,3 +529,6 @@ export default function RacePage() {
     </Suspense>
   );
 }
+
+
+    
