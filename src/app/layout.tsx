@@ -10,6 +10,7 @@ import { GameInstructions } from '@/components/GameInstructions';
 import { EloLeaderboard } from '@/components/EloLeaderboard';
 import { MusicPlayer } from '@/components/MusicPlayer'; // Import MusicPlayer
 import { SocialMediaLinks } from '@/components/SocialMediaLinks'; // Import SocialMediaLinks
+import { Footer } from '@/components/Footer'; // Import Footer
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -61,6 +62,7 @@ export default function RootLayout({
               </div>
             </aside>
           </div>
+          <Footer /> {/* Add Footer here */}
           <Toaster />
         </AppProviders>
       </body>
