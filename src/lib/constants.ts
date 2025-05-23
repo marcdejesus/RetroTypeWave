@@ -44,9 +44,10 @@ export const INITIAL_ELO = 1000;
 export const ELO_K_FACTOR = 32;
 export const ELO_STORAGE_KEY = 'typeRoyaleUserElo';
 
-export const RACE_DURATIONS = [30, 60, 90]; // in seconds
+export const RACE_DURATIONS = [60, 180, 300]; // Durations in seconds (1 min, 3 min, 5 min)
 
 export const BOT_NAMES = ["Speedy Bot", "TypeMaster Flex", "Keyboard Ninja"];
 export const AVATAR_PLACEHOLDER_URL = (seed: string, size = 40) => `https://placehold.co/${size}x${size}.png?text=${seed.substring(0,1).toUpperCase()}`;
 
 export const COUNTDOWN_SECONDS = 3;
+

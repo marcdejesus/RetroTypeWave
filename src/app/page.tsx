@@ -11,11 +11,20 @@ import { Clock, Zap } from 'lucide-react';
 import { RACE_DURATIONS } from '@/lib/constants';
 
 export default function HomePage() {
+  // Default to the middle option (3 minutes / 180 seconds)
   const [selectedDuration, setSelectedDuration] = useState<string>(RACE_DURATIONS[1].toString());
   const router = useRouter();
 
   const handleStartRace = () => {
     router.push(`/race?duration=${selectedDuration}`);
+  };
+
+  const formatDurationForDisplay = (durationInSeconds: number): { value: string; unit: string } => {
+    const minutes = durationInSeconds / 60;
+    return {
+      value: minutes.toString(),
+      unit: minutes === 1 ? "minute" : "minutes",
+    };
   };
 
   return (
@@ -24,8 +33,6 @@ export default function HomePage() {
       style={{ backgroundImage: "url('/retrowave-background.gif')" }}
       data-ai-hint="retrowave city sunset"
     >
-      {/* Removed the semi-transparent overlay div that was here */}
-      
       {/* Card needs to be above any potential overlay if one were present */}
       <Card className="w-full max-w-md z-10 bg-card/80 border-primary/50"> {/* Card still has some transparency */}
         <CardHeader className="text-center">
@@ -47,18 +54,21 @@ export default function HomePage() {
               onValueChange={setSelectedDuration}
               className="grid grid-cols-3 gap-4"
             >
-              {RACE_DURATIONS.map((duration) => (
-                <div key={duration}>
-                  <RadioGroupItem value={duration.toString()} id={`duration-${duration}`} className="sr-only" />
-                  <Label
-                    htmlFor={`duration-${duration}`}
-                    className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover/80 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer text-popover-foreground ${selectedDuration === duration.toString() ? 'border-primary ring-2 ring-primary' : 'border-border/70'}`}
-                  >
-                    <span className="text-xl font-bold">{duration}</span>
-                    <span className="text-xs">seconds</span>
-                  </Label>
-                </div>
-              ))}
+              {RACE_DURATIONS.map((duration) => {
+                const display = formatDurationForDisplay(duration);
+                return (
+                  <div key={duration}>
+                    <RadioGroupItem value={duration.toString()} id={`duration-${duration}`} className="sr-only" />
+                    <Label
+                      htmlFor={`duration-${duration}`}
+                      className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover/80 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer text-popover-foreground ${selectedDuration === duration.toString() ? 'border-primary ring-2 ring-primary' : 'border-border/70'}`}
+                    >
+                      <span className="text-xl font-bold">{display.value}</span>
+                      <span className="text-xs">{display.unit}</span>
+                    </Label>
+                  </div>
+                );
+              })}
             </RadioGroup>
           </div>
         </CardContent>
