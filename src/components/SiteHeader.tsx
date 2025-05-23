@@ -20,9 +20,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center justify-between px-4">
-        {/* Left Group: Logo + Title */}
-        <div className="flex flex-1 justify-start items-center">
+      <div className="container flex h-20 items-center px-4"> {/* Ensures padding and flex alignment */}
+        {/* Left Group: Logo + Title - Takes natural width */}
+        <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
             <span className="font-bold sm:inline-block text-lg hidden md:block">
@@ -31,8 +31,8 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        {/* Middle Group: Nav Links */}
-        <nav className="flex-shrink-0 flex items-center space-x-2 md:space-x-4">
+        {/* Middle Group: Nav Links - Expands and centers its content */}
+        <nav className="flex-1 flex justify-center items-center space-x-2 md:space-x-4">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -50,8 +50,8 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        {/* Right Group: Stats */}
-        <div className="flex flex-1 justify-end items-center">
+        {/* Right Group: Stats - Takes natural width */}
+        <div className="flex items-center">
           <div className="flex items-center space-x-2 md:space-x-4">
             <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
               <Trophy className="h-4 w-4 md:h-5 md:w-5" />
