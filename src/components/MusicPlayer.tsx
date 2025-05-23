@@ -23,7 +23,7 @@ const initialPlaylist: Song[] = [
   { id: 1, name: "Amnesia", artist: "Moochie", src: "/music/AmnesiaByMoochie.mp3" },
   { id: 2, name: "Too Soon", artist: "Diamond Ace", src: "/music/TooSoonByDiamondAce.mp3" },
   { id: 3, name: "Every Day 80's", artist: "Wayne John Bradley", src: "/music/EveryDay80sbyWayneJohnBradley.mp3" },
-  { id: 4, name: "Disco Metropolis", artist: "Vyra", src: "/music/DiscoMetropolisByVyra.mp3"},
+  { id: 4, name: "Disco Metropolis", artist: "Vyra", src: "/music/DiscoMetropolisbyVyra.mp3"},
   { id: 5, name: "Defense Matrix", artist: "Vyra", src: "/music/DefenseMatrixByVyra.mp3"},
   { id: 6, name: "Cyber Punk", artist: "jiglr", src:"/music/Cyberpunkbyjiglr"},
   { id: 7, name: "NIGHT RIDER", artist: "jiglr", src: "/music/NIGHTRIDERByjiglr.mp3"},
