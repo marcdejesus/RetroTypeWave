@@ -20,7 +20,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center px-4"> {/* Ensures padding and flex alignment */}
+      <div className="container flex h-20 items-center px-4"> {/* Main container for alignment */}
         {/* Left Group: Logo + Title - Takes natural width */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -54,7 +54,7 @@ export function SiteHeader() {
         <div className="flex items-center">
           <div className="flex items-center space-x-2 md:space-x-4">
             <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-              <Trophy className="h-4 w-4 md:h-5 md:w-5" />
+              <Trophy className="h-4 w-4 md:h-5 md:h-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-10 md:h-5 md:w-12" />
               ) : (
@@ -62,7 +62,7 @@ export function SiteHeader() {
               )}
             </div>
             <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-              <Zap className="h-4 w-4 md:h-5 md:w-5" />
+              <Zap className="h-4 w-4 md:h-5 md:h-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-8 md:h-5 md:w-10" />
               ) : (
