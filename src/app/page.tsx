@@ -40,7 +40,9 @@ export default function HomePage() {
             <Zap className="w-16 h-16 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">Welcome to Retro Type Wave!</CardTitle>
-          <CardDescription className="text-lg text-card-foreground/90">Choose your race duration and test your typing speed.</CardDescription>
+          <CardDescription className="text-lg text-card-foreground/90">
+            Choose your race duration and test your typing speed. Consistent practice will help increase your speed over time through muscle memory!
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
