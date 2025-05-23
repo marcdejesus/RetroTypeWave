@@ -19,40 +19,45 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container max-w-7xl mx-auto flex h-20 items-center px-4 justify-between">
-        {/* Left Group: Logo + Title - Takes natural width */}
-        <div className="flex items-center h-12">
+      <div className="container max-w-7xl mx-auto flex h-16 items-center px-4 justify-between">
+        {/* Left Group: Logo + Title */}
+        <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <Image src="/logo.png" alt="Retro Type Wave Logo" width={56} height={56} className="text-primary" />
+            <Image src="/logo.png" alt="Retro Type Wave Logo" width={48} height={48} className="text-primary" />
             <span className="font-bold sm:inline-block text-lg hidden md:block">
               Retro Type Wave
             </span>
           </Link>
         </div>
 
-        {/* Middle Group: Nav Links - Expands and centers its content */}
-        <nav className="flex items-center space-x-6 md:space-x-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className={cn(
-                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                pathname === link.href
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-              )}
-            >
-              <link.icon className="h-5 w-5 mr-0 md:mr-2" />
-              <span className="hidden md:block">{link.name}</span>
-            </Link>
-          ))}
+        {/* Middle Group: Nav Links */}
+        <nav className="flex items-center space-x-4">
+          <Link
+            href="/"
+            className={cn(
+              "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              pathname === "/" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+            )}
+          >
+            <HomeIcon className="h-5 w-5 mr-0 md:mr-2" />
+            <span className="hidden md:block">Home</span>
+          </Link>
+          <Link
+            href="/game-lobby"
+            className={cn(
+              "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              pathname === "/game-lobby" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+            )}
+          >
+            <Gamepad2Icon className="h-5 w-5 mr-0 md:mr-2" />
+            <span className="hidden md:block">Game</span>
+          </Link>
         </nav>
 
-        {/* Right Group: Stats - Takes natural width */}
-        <div className="flex items-center h-12">
+        {/* Right Group: Stats */}
+        <div className="flex items-center">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-3 py-2 rounded-md">
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
               <Trophy className="h-4 w-4 md:h-5 md:w-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-10 md:h-5 md:w-12" />
@@ -60,7 +65,7 @@ export function SiteHeader() {
                 <span>{elo ?? '...'} Elo</span>
               )}
             </div>
-            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-3 py-2 rounded-md">
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
               <Zap className="h-4 w-4 md:h-5 md:w-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-8 md:h-5 md:w-10" />
