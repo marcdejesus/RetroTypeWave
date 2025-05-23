@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Clock, Zap, Cog, Code, BookOpen, Sparkles } from 'lucide-react'; // Added Code, BookOpen, Sparkles
+import { Clock, Zap, Cog, BookOpen, Sparkles, BookOpen as BookIcon } from 'lucide-react';
 import { RACE_DURATIONS, GAME_MODES, type GameMode } from '@/lib/constants';
 import { useUserElo } from '@/hooks/useUserElo';
 import { useToast } from "@/hooks/use-toast";
@@ -60,11 +60,10 @@ function GameLobbyContent() {
   };
 
   const ModeIcon = ({ modeId }: { modeId: GameMode }) => {
-    if (modeId === 'grammar') return <BookOpen className="w-5 h-5 mr-2 text-primary" />;
-    if (modeId === 'python') return <Code className="w-5 h-5 mr-2 text-primary" />;
-    return <Sparkles className="w-5 h-5 mr-2 text-primary" />; // Default for no-grammar
+    if (modeId === 'grammar') return <BookOpen className="w-5 h-5 text-primary" />;
+    if (modeId === 'story') return <BookIcon className="w-5 h-5 text-primary" />;
+    return <Sparkles className="w-5 h-5 text-primary" />; // Default for no-grammar
   };
-
 
   return (
     <div
@@ -114,7 +113,7 @@ function GameLobbyContent() {
 
           <div className="space-y-2">
             <Label className="text-base font-semibold flex items-center text-card-foreground">
-              <Sparkles className="w-5 h-5 mr-2 text-primary" /> {/* Using Sparkles as a generic mode icon here */}
+              <Sparkles className="w-5 h-5 mr-2 text-primary" />
               Game Mode
             </Label>
             <RadioGroup
