@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter as FontSans } from 'next/font/google';
+import { VT323 as FontSans } from 'next/font/google'; // Changed font
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,6 +10,7 @@ import AppProviders from '@/components/AppProviders';
 const fontSans = FontSans({
   subsets: ['latin'],
   variable: '--font-sans',
+  weight: '400', // VT323 typically has one weight
 });
 
 export const metadata: Metadata = {

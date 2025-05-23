@@ -246,15 +246,15 @@ function RacePageContent() {
 
     return (
       <>
-        <span className="text-green-500">{completedText}</span>
+        <span className="text-accent">{completedText}</span> {/* Was text-green-500 */}
         {currentWordText.split('').map((char, idx) => (
           <span
             key={idx}
             className={cn(
               idx < userInput.length
                 ? userInput[idx] === char
-                  ? 'text-blue-500' // Correctly typed char in current word
-                  : 'text-red-500 bg-red-100' // Incorrectly typed char
+                  ? 'text-primary' // Correctly typed char in current word (was text-blue-500)
+                  : 'text-destructive bg-destructive/20' // Incorrectly typed char (was text-red-500 bg-red-100)
                 : 'text-foreground', // Not yet typed char in current word
               idx === userInput.length ? 'border-b-2 border-primary animate-pulse' : '' // Caret position
             )}
@@ -279,13 +279,13 @@ function RacePageContent() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card> {/* Removed shadow */}
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl flex items-center">
             <Keyboard className="w-7 h-7 mr-3 text-primary" /> Type The Prompt
           </CardTitle>
           <div className="flex items-center space-x-4 text-lg">
-            <div className="flex items-center text-accent-foreground bg-accent px-3 py-1 rounded-md shadow-sm">
+            <div className="flex items-center text-accent-foreground bg-accent px-3 py-1 rounded-md"> {/* Removed shadow-sm */}
               <TimerIcon className="w-5 h-5 mr-2" />
               <span>{Math.ceil(timeLeft)}s</span>
             </div>
@@ -368,4 +368,3 @@ export default function RacePage() {
     </Suspense>
   );
 }
-

@@ -16,7 +16,7 @@ export function PlayerProgressDisplay({ player, isCurrentUser = false }: PlayerP
   return (
     <div className={cn(
       "p-3 rounded-lg border transition-all duration-300 ease-in-out",
-      isCurrentUser ? "bg-primary/10 border-primary shadow-md" : "bg-card",
+      isCurrentUser ? "bg-primary/10 border-primary" : "bg-card", // Removed shadow-md
       player.progress === 100 ? "opacity-70" : ""
     )}>
       <div className="flex items-center space-x-3 mb-2">
@@ -40,7 +40,7 @@ export function PlayerProgressDisplay({ player, isCurrentUser = false }: PlayerP
           </div>
         )}
       </div>
-      <Progress value={player.progress} className="h-3 [&>div]:bg-gradient-to-r [&>div]:from-accent [&>div]:to-yellow-400" />
+      <Progress value={player.progress} className="h-3 [&>div]:bg-accent" /> {/* Changed progress bar color */}
     </div>
   );
 }

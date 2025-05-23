@@ -21,7 +21,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md"> {/* Removed shadow-xl */}
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Zap className="w-16 h-16 text-primary" />
@@ -58,7 +58,7 @@ export default function HomePage() {
           <Image 
             src="https://placehold.co/600x300.png" 
             alt="Typing Race Illustration"
-            data-ai-hint="typing race keyboard" 
+            data-ai-hint="pixel art keyboard" 
             width={600} 
             height={300} 
             className="rounded-md object-cover aspect-video"
