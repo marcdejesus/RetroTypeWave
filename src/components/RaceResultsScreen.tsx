@@ -125,10 +125,10 @@ export function RaceResultsScreen({
                 ({eloChange >= 0 ? '+' : ''}{eloChange})
               </span>
               {isNewHighestWpm && userResult.finalWpm && (
-                 <div className="text-sm text-accent mt-1 flex items-center justify-center">
+                 <span className="text-sm text-accent mt-1 inline-flex items-center justify-center w-full">
                     <Star className="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400" />
                     New Personal Best WPM: {userResult.finalWpm}!
-                 </div>
+                 </span>
               )}
             </CardDescription>
           )}
@@ -226,3 +226,4 @@ export function RaceResultsScreen({
     </div>
   );
 }
+
