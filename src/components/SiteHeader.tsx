@@ -20,15 +20,19 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center px-4"> {/* Removed justify-between */}
-        <Link href="/" className="flex items-center space-x-2">
-          <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
-          <span className="font-bold sm:inline-block text-lg hidden md:block">
-            Retro Type Wave
-          </span>
-        </Link>
+      <div className="container flex h-20 items-center justify-between px-4">
+        {/* Left Group: Logo + Title */}
+        <div className="flex flex-1 justify-start items-center">
+          <Link href="/" className="flex items-center space-x-2">
+            <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
+            <span className="font-bold sm:inline-block text-lg hidden md:block">
+              Retro Type Wave
+            </span>
+          </Link>
+        </div>
 
-        <nav className="flex-1 flex justify-center items-center space-x-2 md:space-x-4"> {/* Added flex-1 and justify-center */}
+        {/* Middle Group: Nav Links */}
+        <nav className="flex-shrink-0 flex items-center space-x-2 md:space-x-4">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -46,22 +50,25 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-            <Trophy className="h-4 w-4 md:h-5 md:w-5" />
-            {isLoading ? (
-              <Skeleton className="h-4 w-10 md:h-5 md:w-12" />
-            ) : (
-              <span>{elo ?? '...'} Elo</span>
-            )}
-          </div>
-          <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-            <Zap className="h-4 w-4 md:h-5 md:w-5" />
-            {isLoading ? (
-              <Skeleton className="h-4 w-8 md:h-5 md:w-10" />
-            ) : (
-              <span>{highestWpm ?? 0} WPM</span>
-            )}
+        {/* Right Group: Stats */}
+        <div className="flex flex-1 justify-end items-center">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
+              <Trophy className="h-4 w-4 md:h-5 md:w-5" />
+              {isLoading ? (
+                <Skeleton className="h-4 w-10 md:h-5 md:w-12" />
+              ) : (
+                <span>{elo ?? '...'} Elo</span>
+              )}
+            </div>
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-2 py-1 md:px-3 md:py-1.5 rounded-md">
+              <Zap className="h-4 w-4 md:h-5 md:w-5" />
+              {isLoading ? (
+                <Skeleton className="h-4 w-8 md:h-5 md:w-10" />
+              ) : (
+                <span>{highestWpm ?? 0} WPM</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

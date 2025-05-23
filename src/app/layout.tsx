@@ -39,7 +39,7 @@ export default function RootLayout({
           <SiteHeader />
           <div className="flex flex-1 overflow-hidden">
             {/* Left Sidebar (Game Instructions & Music Player) - Hidden on small screens, sticky-like behavior */}
-            <aside className="hidden lg:flex flex-col w-60 p-4 border-r border-border bg-background overflow-y-auto">
+            <aside className="hidden lg:flex flex-col w-64 p-4 border-r border-border bg-background overflow-y-auto"> {/* Changed w-60 to w-64 */}
               <div className="sticky top-4 flex flex-col space-y-4"> {/* Ensures content sticks and has spacing */}
                 <GameInstructions />
                 <MusicPlayer />
@@ -54,7 +54,7 @@ export default function RootLayout({
             </main>
 
             {/* Right Sidebar (Leaderboard & Social Media) - Hidden on small screens, sticky-like behavior */}
-            <aside className="hidden lg:flex flex-col w-72 p-4 border-l border-border bg-background overflow-y-auto">
+            <aside className="hidden lg:flex flex-col w-64 p-4 border-l border-border bg-background overflow-y-auto"> {/* Changed w-72 to w-64 */}
               <div className="sticky top-4 flex flex-col space-y-4"> {/* Ensures content sticks and has spacing */}
                 <EloLeaderboard />
                 <SocialMediaLinks /> {/* Add SocialMediaLinks here */}
