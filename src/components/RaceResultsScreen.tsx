@@ -10,21 +10,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat, Star, UploadCloud, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useUserElo } from '@/hooks/useUserElo'; // To submit score
+import { useUserElo } from '@/hooks/useUserElo';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 
-const LEADERBOARD_SIZE_FOR_QUALIFICATION = 10; // Check against top 10 for qualification
+const LEADERBOARD_SIZE_FOR_QUALIFICATION = 10;
 
 interface RaceResultsScreenProps {
   results: PlayerStats[];
-  currentUserEloFromRace: number | null; // Elo *after* this race's change
+  currentUserEloFromRace: number | null;
   eloChange: number;
   onPlayAgain: () => void;
   onGoHome: () => void;
   isNewHighestWpm?: boolean;
-  finalUserWpmFromRace: number | null; // Pass the user's WPM for this race
+  finalUserWpmFromRace: number | null;
 }
 
 export function RaceResultsScreen({
@@ -39,12 +39,12 @@ export function RaceResultsScreen({
   const sortedResults = [...results].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
   const userResult = results.find(p => !p.isBot);
 
-  const { username: initialUsername, updateUserUsername, submitToGlobalLeaderboard } = useUserElo();
+  const { username: initialUsername, submitToGlobalLeaderboard } = useUserElo();
   const [usernameInput, setUsernameInput] = useState(initialUsername || '');
   const [canSubmitToLeaderboard, setCanSubmitToLeaderboard] = useState(false);
   const [isCheckingQualification, setIsCheckingQualification] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submissionAttempted, setSubmissionAttempted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,18 +63,18 @@ export function RaceResultsScreen({
         snapshot.forEach(doc => leaderboardEntries.push(doc.data() as LeaderboardEntry));
 
         if (leaderboardEntries.length < LEADERBOARD_SIZE_FOR_QUALIFICATION) {
-          setCanSubmitToLeaderboard(true); // Can submit if leaderboard is not full
+          setCanSubmitToLeaderboard(true);
         } else {
           const lowestEloOnLeaderboard = leaderboardEntries[leaderboardEntries.length - 1]?.elo;
           if (currentUserEloFromRace > lowestEloOnLeaderboard) {
-            setCanSubmitToLeaderboard(true); // Can submit if Elo is higher than lowest on full leaderboard
+            setCanSubmitToLeaderboard(true);
           } else {
             setCanSubmitToLeaderboard(false);
           }
         }
       } catch (error) {
         console.error("Error checking leaderboard qualification:", error);
-        setCanSubmitToLeaderboard(false); // Default to false on error
+        setCanSubmitToLeaderboard(false);
       } finally {
         setIsCheckingQualification(false);
       }
@@ -84,21 +84,25 @@ export function RaceResultsScreen({
   }, [currentUserEloFromRace, finalUserWpmFromRace]);
 
   const handleLeaderboardSubmit = async () => {
-    if (!usernameInput.trim() || !currentUserEloFromRace || !finalUserWpmFromRace) {
+    if (!usernameInput.trim()) {
         toast({ title: "Error", description: "Username is required.", variant: "destructive" });
         return;
     }
+    if (!currentUserEloFromRace || finalUserWpmFromRace === null) {
+        toast({ title: "Error", description: "User data not available for submission.", variant: "destructive" });
+        return;
+    }
+
     setIsSubmitting(true);
-    setSubmissionStatus('idle');
-    const success = await submitToGlobalLeaderboard(usernameInput, currentUserEloFromRace, finalUserWpmFromRace);
-    if (success) {
-      updateUserUsername(usernameInput); // Save username to cookie
-      toast({ title: "Success!", description: "Your score has been submitted to the leaderboard." });
-      setSubmissionStatus('success');
-      setCanSubmitToLeaderboard(false); // Prevent re-submission
+    setSubmissionAttempted(true); 
+
+    const result = await submitToGlobalLeaderboard(usernameInput, currentUserEloFromRace, finalUserWpmFromRace);
+    
+    if (result.success) {
+      toast({ title: "Success!", description: result.message });
+      setCanSubmitToLeaderboard(false); // Prevent re-submission with same data
     } else {
-      toast({ title: "Submission Failed", description: "Could not submit score. Please try again.", variant: "destructive" });
-      setSubmissionStatus('error');
+      toast({ title: "Submission Failed", description: result.message, variant: "destructive" });
     }
     setIsSubmitting(false);
   };
@@ -182,7 +186,7 @@ export function RaceResultsScreen({
             </div>
           )}
 
-          {!isCheckingQualification && canSubmitToLeaderboard && submissionStatus !== 'success' && (
+          {!isCheckingQualification && canSubmitToLeaderboard && !submissionAttempted && (
             <div className="space-y-4 p-4 border-t border-dashed">
               <Label htmlFor="username" className="text-base font-semibold text-center block text-accent">You qualified for the Leaderboard!</Label>
               <div className="flex flex-col sm:flex-row gap-2 items-end">
@@ -202,13 +206,14 @@ export function RaceResultsScreen({
                   Submit Score
                 </Button>
               </div>
-              {submissionStatus === 'error' && <p className="text-sm text-destructive text-center">Failed to submit. Please try again.</p>}
             </div>
           )}
-           {submissionStatus === 'success' && (
-            <p className="text-center text-green-500 font-semibold my-4">Score submitted successfully!</p>
+           {submissionAttempted && !canSubmitToLeaderboard && ( // Show if submission was successful or they didn't qualify initially
+            <p className="text-center text-green-500 font-semibold my-4">Score submitted successfully or already on leaderboard!</p>
            )}
-
+            {!isCheckingQualification && !canSubmitToLeaderboard && !submissionAttempted && (
+                <p className="text-center text-muted-foreground my-4">You didn't quite make the global leaderboard this time. Keep practicing!</p>
+            )}
 
         </CardContent>
 
@@ -226,4 +231,3 @@ export function RaceResultsScreen({
     </div>
   );
 }
-

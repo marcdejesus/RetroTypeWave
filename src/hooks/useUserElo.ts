@@ -3,9 +3,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore'; // Keep for leaderboard submission
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { INITIAL_ELO } from '@/lib/constants';
 import { getCookie, setCookie, PLAYER_ELO_COOKIE, PLAYER_HIGHEST_WPM_COOKIE, PLAYER_USERNAME_COOKIE } from '@/lib/cookies';
+
+interface SubmissionResult {
+  success: boolean;
+  message: string;
+}
 
 export function useUserElo() {
   const [elo, setElo] = useState<number | null>(null);
@@ -14,7 +19,6 @@ export function useUserElo() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load from cookies on mount
     try {
       const storedElo = getCookie(PLAYER_ELO_COOKIE);
       const storedHighestWpm = getCookie(PLAYER_HIGHEST_WPM_COOKIE);
@@ -65,32 +69,39 @@ export function useUserElo() {
     }
   }, []);
   
-  // This function is now specifically for submitting a score to the global leaderboard
-  const submitToGlobalLeaderboard = async (usernameToSubmit: string, scoreElo: number, scoreWpm: number) => {
-    if (!usernameToSubmit.trim()) {
-      console.error("Username cannot be empty for leaderboard submission.");
-      return false;
+  const submitToGlobalLeaderboard = async (usernameToSubmit: string, scoreElo: number, scoreWpm: number): Promise<SubmissionResult> => {
+    const trimmedUsername = usernameToSubmit.trim();
+    if (!trimmedUsername) {
+      return { success: false, message: "Username cannot be empty." };
     }
-    // We can use the username as the document ID if we want one score per username,
-    // or generate a new ID for each submission. For simplicity, let's use username as ID,
-    // which means new scores from the same username overwrite old ones.
-    // A more robust system might allow multiple scores or check if a user wants to update.
-    const leaderboardRef = doc(db, 'leaderboardEntries', usernameToSubmit.trim().toLowerCase()); // Normalize username for ID
+    const normalizedUsernameId = trimmedUsername.toLowerCase(); // Use normalized username for doc ID
+
+    const leaderboardRef = doc(db, 'leaderboardEntries', normalizedUsernameId);
+    
     try {
+      // Check if username already exists
+      const docSnap = await getDoc(leaderboardRef);
+      if (docSnap.exists()) {
+        return { success: false, message: "Username already taken. Please choose another." };
+      }
+
+      // If username doesn't exist, proceed to set the document
       await setDoc(leaderboardRef, {
-        username: usernameToSubmit.trim(),
+        username: trimmedUsername, // Store the original (non-lowercased) username for display
         elo: scoreElo,
         highestWpm: scoreWpm,
         timestamp: serverTimestamp(),
-      }, { merge: true }); // Use merge if you want to update if doc exists, or just setDoc to overwrite
-      updateUserUsername(usernameToSubmit.trim()); // Save submitted username locally too
-      return true;
-    } catch (error) {
+      });
+      updateUserUsername(trimmedUsername); // Save submitted username locally too
+      return { success: true, message: "Your score has been submitted to the leaderboard!" };
+    } catch (error: any) {
       console.error("Error submitting score to global leaderboard:", error);
-      return false;
+      if (error.code === 'permission-denied' || error.message?.includes('Missing or insufficient permissions')) {
+        return { success: false, message: "Submission failed: Server permission denied. Please check Firestore rules." };
+      }
+      return { success: false, message: "Could not submit score. Please try again later." };
     }
   };
-
 
   return { 
     elo, 
