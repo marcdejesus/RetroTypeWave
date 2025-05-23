@@ -16,8 +16,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: 'Type Royale',
-  description: 'A multiplayer typing race game with AI bots.',
+  title: 'Retro Type Wave',
+  description: 'A multiplayer typing race game with AI bots and a retro wave theme.',
 };
 
 export default function RootLayout({

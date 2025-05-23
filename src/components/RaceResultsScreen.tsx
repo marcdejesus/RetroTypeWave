@@ -5,7 +5,7 @@ import type { PlayerStats } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Corrected path
 
 interface RaceResultsScreenProps {
@@ -14,6 +14,7 @@ interface RaceResultsScreenProps {
   eloChange: number;
   onPlayAgain: () => void;
   onGoHome: () => void;
+  isNewHighestWpm?: boolean; // Optional: to highlight new WPM record
 }
 
 export function RaceResultsScreen({
@@ -22,10 +23,8 @@ export function RaceResultsScreen({
   eloChange,
   onPlayAgain,
   onGoHome,
+  isNewHighestWpm = false,
 }: RaceResultsScreenProps) {
-  // Sort by finalWPM then finalAccuracy to ensure consistent ranking display
-  // The ranking should ideally be done before passing to this component.
-  // However, if it's not, we can sort here for display consistency.
   const sortedResults = [...results].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
   
   const userResult = results.find(p => !p.isBot);
@@ -51,6 +50,12 @@ export function RaceResultsScreen({
               <span className={`ml-1 font-semibold ${eloChange > 0 ? 'text-green-500' : eloChange < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
                 ({eloChange >= 0 ? '+' : ''}{eloChange})
               </span>
+              {isNewHighestWpm && userResult.finalWpm && (
+                 <div className="text-sm text-accent mt-1 flex items-center justify-center">
+                    <Star className="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400" />
+                    New Highest WPM: {userResult.finalWpm}!
+                 </div>
+              )}
             </CardDescription>
           )}
         </CardHeader>
