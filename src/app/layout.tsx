@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { SiteHeader } from '@/components/SiteHeader';
 import AppProviders from '@/components/AppProviders';
-import { AdPlaceholder } from '@/components/AdPlaceholder';
+import { GameInstructions } from '@/components/GameInstructions'; // Changed import
 import { EloLeaderboard } from '@/components/EloLeaderboard';
 
 const fontSans = FontSans({
@@ -36,10 +36,10 @@ export default function RootLayout({
         <AppProviders>
           <SiteHeader />
           <div className="flex flex-1 overflow-hidden">
-            {/* Left Sidebar (Ads) - Hidden on small screens, sticky-like behavior */}
+            {/* Left Sidebar (Game Instructions) - Hidden on small screens, sticky-like behavior */}
             <aside className="hidden lg:flex flex-col w-60 p-4 border-r border-border bg-background overflow-y-auto">
               <div className="sticky top-4"> {/* Content within aside can be sticky */}
-                <AdPlaceholder />
+                <GameInstructions /> {/* Changed component */}
               </div>
             </aside>
 
