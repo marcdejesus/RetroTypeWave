@@ -1,4 +1,3 @@
-
 // export const PROMPT_TEXT = "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zephyrs jump! A mad boxer shot a quick, gloved jab to the jaw of his dizzy opponent. The job requires extra pluck and zeal from every young wage earner. Sphinx of black quartz, judge my vow.";
 
 export const WORD_POOL: readonly string[] = [
@@ -20,9 +19,21 @@ export const WORD_POOL: readonly string[] = [
 export type GameMode = 'no-grammar' | 'grammar' | 'python';
 
 export const GAME_MODES: { id: GameMode; label: string; description: string }[] = [
-  { id: 'no-grammar', label: 'Freestyle', description: 'Type a sequence of random common words.' },
-  { id: 'grammar', label: 'Prose', description: 'Type excerpts from literature.' },
-  { id: 'python', label: 'Python Code', description: 'Type fundamental Python algorithms.' },
+  { 
+    id: 'no-grammar', 
+    label: 'Freestyle', 
+    description: 'Type random common words to build raw typing speed.' 
+  },
+  { 
+    id: 'grammar', 
+    label: 'Grammar', 
+    description: 'Practice with proper punctuation and capitalization.' 
+  },
+  { 
+    id: 'python', 
+    label: 'Python', 
+    description: 'Type Python code with proper indentation.' 
+  },
 ];
 
 export const LITERATURE_PROMPTS: readonly string[] = [
@@ -33,7 +44,7 @@ export const LITERATURE_PROMPTS: readonly string[] = [
   "All that is gold does not glitter, Not all those who wander are lost; The old that is strong does not wither, Deep roots are not reached by the frost. From the ashes a fire shall be woken, A light from the shadows shall spring;",
   "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife. However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
   "Two roads diverged in a yellow wood, And sorry I could not travel both And be one traveler, long I stood And looked down one as far as I could To where it bent in the undergrowth; Then took the other, as just as fair,",
-  "Happy families are all alike; every unhappy family is unhappy in its own way. Everything was in confusion in the Oblonskys’ house. The wife had discovered that the husband was carrying on an intrigue with a French governess.",
+  "Happy families are all alike; every unhappy family is unhappy in its own way. Everything was in confusion in the Oblonskys' house. The wife had discovered that the husband was carrying on an intrigue with a French governess.",
   "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle. As with all matters of the heart, you'll know when you find it.",
   "In three words I can sum up everything I've learned about life: it goes on. Live as if you were to die tomorrow. Learn as if you were to live forever."
 ];

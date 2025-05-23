@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
@@ -129,11 +128,12 @@ function GameLobbyContent() {
                   <RadioGroupItem value={mode.id} id={`mode-${mode.id}`} className="sr-only" />
                   <Label
                     htmlFor={`mode-${mode.id}`}
-                    className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover/80 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer text-popover-foreground min-h-[100px] text-center ${selectedMode === mode.id ? 'border-primary ring-2 ring-primary' : 'border-border/70'}`}
+                    className={`flex flex-col items-center rounded-md border-2 border-muted bg-popover/80 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer text-popover-foreground h-[100px] text-center transition-all ${selectedMode === mode.id ? 'border-primary ring-2 ring-primary' : 'border-border/70'}`}
                   >
                     <ModeIcon modeId={mode.id} />
-                    <span className="text-lg font-semibold mt-1">{mode.label}</span>
-                    <span className="text-xs text-muted-foreground mt-0.5">{mode.description}</span>
+                    <div className="flex flex-col items-center justify-center flex-1">
+                      <div className="text-lg font-semibold">{mode.label}</div>
+                    </div>
                   </Label>
                 </div>
               ))}
