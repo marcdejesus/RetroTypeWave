@@ -4,15 +4,16 @@
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserElo } from '@/hooks/useUserElo';
-import { simulateBotSpeed, type SimulateBotSpeedInput } from '@/ai/flows/bot-speed-simulation';
+// Removed: import { simulateBotSpeed, type SimulateBotSpeedInput } from '@/ai/flows/bot-speed-simulation';
+import { generateAITypingSpeed } from '@/lib/ai-opponent';
 import { generateRandomPrompt, BOT_NAMES, AVATAR_PLACEHOLDER_URL, COUNTDOWN_SECONDS, ELO_K_FACTOR, INITIAL_ELO } from '@/lib/constants';
 import type { PlayerStats, RaceStatus } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { PlayerProgressDisplay } from '@/components/PlayerProgressDisplay';
+// Removed: import { PlayerProgressDisplay } from '@/components/PlayerProgressDisplay'; // No longer used directly here
 import { RaceResultsScreen } from '@/components/RaceResultsScreen';
-import { RaceTrackDisplay } from '@/components/RaceTrackDisplay'; // Added import
+import { RaceTrackDisplay } from '@/components/RaceTrackDisplay';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, TimerIcon, Zap, Percent, Keyboard } from 'lucide-react';
@@ -21,7 +22,7 @@ import { cn } from '@/lib/utils';
 function RacePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
+  const { toast } = useToast(); // Keep toast for potential future use or other errors
   const { elo: currentUserElo, updateUserElo, isLoading: eloLoading } = useUserElo();
 
   const raceDuration = parseInt(searchParams?.get('duration') || '60', 10);
@@ -53,7 +54,6 @@ function RacePageContent() {
   useEffect(() => {
     if (eloLoading || currentUserElo === null) return;
 
-    // Prevent re-initialization if race is ongoing/finished and elo updates
     if (initializedForDurationRef.current === raceDuration && raceStatus !== 'waiting') {
         setPlayers(prevPlayers => prevPlayers.map(p => {
             if (p.id === userPlayerId && p.elo !== currentUserElo) {
@@ -84,16 +84,16 @@ function RacePageContent() {
       id: `bot-${index}`,
       name,
       isBot: true,
-      wpm: 0, // Base WPM will be set after simulation
-      accuracy: 90 + Math.floor(Math.random() * 10), // Randomize bot accuracy slightly
+      wpm: 0, // Base WPM will be set after simulation/generation
+      accuracy: 90 + Math.floor(Math.random() * 10), 
       progress: 0,
       avatarUrl: AVATAR_PLACEHOLDER_URL(name),
-      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100), // Bot ELO relative to user
+      // Bot Elo is set before speed generation, based on user's Elo
+      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100),
     }));
 
     setPlayers([user, ...initialBots]);
     
-    // Reset all race-specific states
     setRaceStatus('waiting');
     setUserInput('');
     setCurrentWordIndex(0);
@@ -119,44 +119,21 @@ function RacePageContent() {
         inputRef.current.focus();
     }
 
-
-    const botPlayers = players.filter(p => p.isBot);
-    const userWpmForBotSim = players.find(p => !p.isBot)?.wpm || 40; // Use a baseline if user WPM is 0
-
-    try {
-        const botSpeedPromises = botPlayers.map(bot =>
-            simulateBotSpeed({
-                userWpm: userWpmForBotSim,
-                userElo: currentUserElo,
-                raceDuration: raceDuration,
-            }).then(response => ({ botId: bot.id, botWpm: response.botWpm }))
-            .catch(error => {
-                console.error(`Failed to simulate speed for ${bot.name}:`, error);
-                toast({ title: "AI Error", description: `Could not simulate speed for ${bot.name}. Using default.`, variant: "destructive" });
-                return { botId: bot.id, botWpm: 30 + Math.random() * 20 }; 
-            })
-        );
-
-        const botSpeeds = await Promise.all(botSpeedPromises);
-
-        setPlayers(prev => {
-            const updatedPlayers = prev.map(p => {
-                if (p.isBot) {
-                    const speedData = botSpeeds.find(bs => bs.botId === p.id);
-                    if (speedData) {
-                        return { ...p, wpm: speedData.botWpm, elo: Math.round(speedData.botWpm * 15 + Math.random() * 100) };
-                    }
-                }
-                return p;
-            });
-            return updatedPlayers;
+    // Generate bot speeds using the new local function
+    setPlayers(prev => {
+        const updatedPlayers = prev.map(p => {
+            if (p.isBot) {
+                // Use the bot's own Elo if available, or a default relative to user's for generation
+                const botEloForSpeedGeneration = p.elo ?? Math.max(500, currentUserElo + Math.floor(Math.random() * 100) - 50);
+                const botWpm = generateAITypingSpeed(botEloForSpeedGeneration);
+                return { ...p, wpm: botWpm, elo: botEloForSpeedGeneration }; // ensure elo used for speed is stored
+            }
+            return p;
         });
+        return updatedPlayers;
+    });
 
-    } catch (error) {
-        console.error("Error during bot speed simulation setup:", error);
-        setPlayers(prev => prev.map(p => p.isBot ? { ...p, wpm: 30 + Math.random() * 20 } : p));
-    }
-  }, [players, raceStatus, currentUserElo, raceDuration, toast, currentRacePrompt]);
+  }, [players, raceStatus, currentUserElo, raceDuration, currentRacePrompt]); // Removed toast from dependencies
 
   useEffect(() => {
     if (raceStatus === 'countdown') {
@@ -166,7 +143,7 @@ function RacePageContent() {
         setRaceStatus('racing');
         raceStartTimeRef.current = Date.now();
         setTimeLeft(raceDuration);
-        if (inputRef.current) { // Ensure focus after countdown
+        if (inputRef.current) { 
             inputRef.current.focus();
         }
       }
@@ -284,13 +261,11 @@ function RacePageContent() {
     let correctChars = 0;
     let totalCharsAttempted = 0;
 
-    // Count correct characters from completed words
     for (let i = 0; i < currentWordIndex; i++) {
-        correctChars += promptWords.current[i].length + 1; // +1 for space
+        correctChars += promptWords.current[i].length + 1; 
         totalCharsAttempted += promptWords.current[i].length + 1;
     }
 
-    // Count correct characters from the current word being typed
     if (currentWordIndex < promptWords.current.length) {
         const currentWordVal = promptWords.current[currentWordIndex];
         for (let i = 0; i < userInput.length; i++) {
@@ -299,15 +274,12 @@ function RacePageContent() {
             }
             totalCharsAttempted++;
         }
-        if (userInput.length > currentWordVal.length) { // User typed more than the word
+        if (userInput.length > currentWordVal.length) { 
             totalCharsAttempted += (userInput.length - currentWordVal.length);
         }
     }
     
-    if (totalTypedCharsRef.current === 0 && totalCharsAttempted === 0) return 100; // Avoid division by zero if no input yet
-    // Use total key presses as a denominator for a more "raw" accuracy, 
-    // or totalCharsAttempted for a more "standard" one.
-    // Let's use totalTypedCharsRef for a stricter accuracy.
+    if (totalTypedCharsRef.current === 0 && totalCharsAttempted === 0) return 100; 
     const accuracy = Math.round((correctChars / Math.max(totalTypedCharsRef.current, totalCharsAttempted, 1)) * 100);
     return Math.max(0, Math.min(100, accuracy));
   };
@@ -327,7 +299,14 @@ function RacePageContent() {
             const finalProgress = userCompletedPrompt ? 100 : p.progress;
             return { ...p, finalWpm: finalUserWpm, finalAccuracy: finalUserAccuracy, wpm: finalUserWpm, accuracy: finalUserAccuracy, progress: finalProgress };
           }
-          return { ...p, finalWpm: p.wpm, finalAccuracy: p.accuracy, progress: Math.min(100, p.progress) };
+          // For bots, ensure their progress is also finalized based on their WPM and race duration
+          const elapsedTimeTotal = raceDuration; // Use full race duration for final bot progress
+          const botCharsToTypePerMinute = (p.wpm || 30) * 5;
+          const botCharsPerSecond = botCharsToTypePerMinute / 60;
+          const botTypedChars = botCharsPerSecond * elapsedTimeTotal;
+          const finalBotProgress = currentRacePrompt.length > 0 ? Math.min(100, (botTypedChars / currentRacePrompt.length) * 100) : 0;
+
+          return { ...p, finalWpm: p.wpm, finalAccuracy: p.accuracy, progress: finalBotProgress };
         });
         
         const rankedPlayers = [...finalPlayersState].sort((a, b) => {
@@ -369,13 +348,13 @@ function RacePageContent() {
         return rankedPlayers;
       });
     }
-  }, [raceStatus, resultsCalculated, currentUserElo, players, updateUserElo, userPlayerId, raceDuration, currentRacePrompt, currentWordIndex]);
+  }, [raceStatus, resultsCalculated, currentUserElo, players, updateUserElo, userPlayerId, raceDuration, currentRacePrompt, currentWordIndex]); // Added currentWordIndex
 
   
   const getHighlightedPrompt = () => {
     if (currentRacePrompt.length === 0) return "Loading prompt...";
-    if (currentWordIndex >= promptWords.current.length && raceStatus === 'racing') { // If prompt is finished during race
-        setRaceStatus('finished'); // Trigger end of race immediately
+    if (currentWordIndex >= promptWords.current.length && raceStatus === 'racing') { 
+        setRaceStatus('finished'); 
         return <span className="text-accent">Prompt completed!</span>;
     }
     if (currentWordIndex >= promptWords.current.length ) {
@@ -404,7 +383,7 @@ function RacePageContent() {
             {char}
           </span>
         ))}
-        {currentWordText && <span className="text-foreground">&nbsp;</span>} {/* Ensure space after current word if it's not the last */}
+        {currentWordText && <span className="text-foreground">&nbsp;</span>} 
         <span className="text-muted-foreground">{futureText}</span>
       </>
     );
@@ -510,14 +489,6 @@ function RacePageContent() {
         <RaceTrackDisplay players={players} userPlayerId={userPlayerId} />
       )}
       
-      {/* Detailed Player Progress Cards are hidden by default, can be enabled for debugging or different UI */}
-      {/* {(raceStatus === 'racing' || raceStatus === 'finished' || raceStatus === 'countdown') && players.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          {players.map(player => (
-            <PlayerProgressDisplay key={player.id} player={player} isCurrentUser={player.id === userPlayerId} />
-          ))}
-        </div>
-      )} */}
     </div>
   );
 }
@@ -529,6 +500,3 @@ export default function RacePage() {
     </Suspense>
   );
 }
-
-
-    

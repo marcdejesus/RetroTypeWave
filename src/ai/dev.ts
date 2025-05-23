@@ -1,4 +1,6 @@
+
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/bot-speed-simulation.ts';
+// Removed: import '@/ai/flows/bot-speed-simulation.ts';
+// The bot speed simulation is now handled client-side.
