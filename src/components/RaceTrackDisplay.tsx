@@ -12,18 +12,19 @@ interface RaceTrackDisplayProps {
   userPlayerId: string | null;
 }
 
-const carRepresentations = [
-  // Simple ASCII-like or basic SVG paths could go here for more "car" like shapes
-  // For now, using colored blocks with icons.
-  { icon: '🚗', color: 'bg-pink-500' }, // Example, consider actual SVG or better icons
-  { icon: '🚕', color: 'bg-cyan-400' },
-  { icon: '🚓', color: 'bg-green-400' },
-  { icon: '🏎️', color: 'bg-yellow-400' },
-];
-
-// A more distinct SVG car shape
+// Car SVG: path originally points UP (front towards Y=0)
+// width="50", height="25" in viewBox units.
+// To point RIGHT, it needs a -90deg (clockwise) rotation.
 const CarSvg = ({ colorFill }: { colorFill: string }) => (
-  <svg width="40" height="20" viewBox="0 0 50 25" className="transform -rotate-90" fill={colorFill} xmlns="http://www.w3.org/2000/svg">
+  <svg 
+    width="40" // Display width
+    height="20" // Display height
+    viewBox="0 0 50 25" // Coordinate system for path
+    className="block transform -rotate-90" // Added 'block', kept '-rotate-90'
+    fill={colorFill} 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Path draws car pointing UP (front is at Y=5, rear at Y=20) */}
     <path d="M10 20V12.5C10 11.1193 11.1193 10 12.5 10H17.5L20 5H30L32.5 10H37.5C38.8807 10 40 11.1193 40 12.5V20H10Z" />
     <circle cx="15" cy="20" r="4" fill="hsl(var(--foreground))" stroke="hsl(var(--background))" strokeWidth="1"/>
     <circle cx="35" cy="20" r="4" fill="hsl(var(--foreground))" stroke="hsl(var(--background))" strokeWidth="1"/>
@@ -72,7 +73,7 @@ export function RaceTrackDisplay({ players, userPlayerId }: RaceTrackDisplayProp
                 style={{ left: `calc(${Math.min(player.progress, 100)}% - ${Math.min(player.progress, 100) > 0 ? '40px' : '0px'})` }}
               >
                 <div className={cn(
-                  "flex items-center justify-center",
+                  "flex items-center justify-center", // This div centers the SVG
                   player.id === userPlayerId ? 'scale-105' : ''
                 )}>
                    <CarSvg colorFill={carColor} />
@@ -100,5 +101,3 @@ export function RaceTrackDisplay({ players, userPlayerId }: RaceTrackDisplayProp
     </Card>
   );
 }
-
-    
