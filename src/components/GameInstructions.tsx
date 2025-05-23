@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ListChecks, Zap, Trophy, Info } from 'lucide-react'; // Added Info icon
+import { ListChecks, Zap, Trophy, Info, Link as LinkIcon } from 'lucide-react'; // Added Info and LinkIcon
 
 export function GameInstructions() {
   return (
@@ -53,6 +53,20 @@ export function GameInstructions() {
         <p className="text-xs text-muted-foreground pt-2 text-center">
           Good luck, and type fast!
         </p>
+
+        <div className="mt-auto pt-4 text-center text-xs text-muted-foreground border-t border-border/50">
+          <p>
+            Developed by{' '}
+            <a
+              href="https://marcdejesusdev.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:text-accent underline"
+            >
+              Marc De Jesus
+            </a>
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
