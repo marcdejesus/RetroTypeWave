@@ -11,7 +11,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-14 items-center px-4"> {/* Added px-4 for horizontal padding */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <BotMessageSquare className="h-6 w-6 text-primary" />
           <span className="font-bold sm:inline-block text-lg">
