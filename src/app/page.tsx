@@ -16,8 +16,8 @@ export default function HomePage() {
         style={{ backgroundImage: "url('/retrowave-background.gif')" }}
         data-ai-hint="retrowave city sunset"
       >
-        {/* Dark Tint Overlay */}
-        <div className="absolute inset-0 bg-black/30 z-0"></div>
+        {/* Dark Tint Overlay - Changed from bg-black/30 to bg-black/60 */}
+        <div className="absolute inset-0 bg-black/60 z-0"></div>
 
         <div className="container mx-auto px-4 relative z-10">
           <Image src="/logo.png" alt="Retro Type Wave Logo" width={320} height={320} className="mx-auto mb-6" />
