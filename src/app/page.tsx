@@ -11,8 +11,14 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="text-center py-12 lg:py-20 bg-background rounded-lg shadow-xl border border-primary/30 overflow-hidden">
-        {/* Removed the div with backgroundImage style to make background solid */}
+      <section
+        className="relative text-center py-12 lg:py-20 bg-cover bg-center bg-no-repeat rounded-lg shadow-xl border border-primary/30 overflow-hidden"
+        style={{ backgroundImage: "url('/retrowave-background.gif')" }}
+        data-ai-hint="retrowave city sunset"
+      >
+        {/* Dark Tint Overlay */}
+        <div className="absolute inset-0 bg-black/30 z-0"></div>
+
         <div className="container mx-auto px-4 relative z-10">
           <Image src="/logo.png" alt="Retro Type Wave Logo" width={320} height={320} className="mx-auto mb-6" />
           <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-4 tracking-wider">
