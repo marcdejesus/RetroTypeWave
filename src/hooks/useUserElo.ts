@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -74,25 +73,39 @@ export function useUserElo() {
     if (!trimmedUsername) {
       return { success: false, message: "Username cannot be empty." };
     }
-    const normalizedUsernameId = trimmedUsername.toLowerCase(); // Use normalized username for doc ID
+    const normalizedUsernameId = trimmedUsername.toLowerCase();
 
     const leaderboardRef = doc(db, 'leaderboardEntries', normalizedUsernameId);
     
     try {
       // Check if username already exists
       const docSnap = await getDoc(leaderboardRef);
+      
       if (docSnap.exists()) {
-        return { success: false, message: "Username already taken. Please choose another." };
+        const existingData = docSnap.data();
+        // Only update if the new WPM is higher
+        if (scoreWpm > existingData.highestWpm) {
+          await setDoc(leaderboardRef, {
+            username: trimmedUsername,
+            elo: scoreElo,
+            highestWpm: scoreWpm,
+            timestamp: serverTimestamp(),
+          });
+          updateUserUsername(trimmedUsername);
+          return { success: true, message: "Your score has been updated on the leaderboard!" };
+        } else {
+          return { success: false, message: "Your current WPM is not higher than your previous best." };
+        }
       }
 
-      // If username doesn't exist, proceed to set the document
+      // If username doesn't exist, create new entry
       await setDoc(leaderboardRef, {
-        username: trimmedUsername, // Store the original (non-lowercased) username for display
+        username: trimmedUsername,
         elo: scoreElo,
         highestWpm: scoreWpm,
         timestamp: serverTimestamp(),
       });
-      updateUserUsername(trimmedUsername); // Save submitted username locally too
+      updateUserUsername(trimmedUsername);
       return { success: true, message: "Your score has been submitted to the leaderboard!" };
     } catch (error: any) {
       console.error("Error submitting score to global leaderboard:", error);

@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export interface PlayerStats {
@@ -24,6 +23,7 @@ export interface LeaderboardEntry {
   elo: number;
   highestWpm: number;
   timestamp?: Timestamp | Date; // To know when the score was set
+  rank?: number; // Optional rank property for display purposes
 }
 
 // This type is for local player data, potentially stored in cookies or state

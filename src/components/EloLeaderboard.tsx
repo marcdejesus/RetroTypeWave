@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -10,29 +9,36 @@ import { Crown, TrendingUp, User, Zap } from 'lucide-react'; // Added Zap for WP
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-const LEADERBOARD_LIMIT = 10; 
+const LEADERBOARD_LIMIT = 10;
 
 export function EloLeaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!db) return;
+    
     setIsLoading(true);
     const leaderboardRef = collection(db, 'leaderboardEntries');
-    // Query to get top 10 entries, sorted by Elo in descending order
-    const q = query(leaderboardRef, orderBy('elo', 'desc'), limit(LEADERBOARD_LIMIT));
+    // Query to get top 20 entries, sorted by WPM in descending order
+    const q = query(
+      leaderboardRef, 
+      orderBy('highestWpm', 'desc'),
+      limit(LEADERBOARD_LIMIT)
+    );
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedEntries: LeaderboardEntry[] = [];
-      querySnapshot.forEach((doc, index) => {
-        const data = doc.data() as Omit<LeaderboardEntry, 'id' | 'rank'>; // Assuming rank is client-side
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const index = fetchedEntries.length;
         fetchedEntries.push({
-          id: doc.id, // Document ID (normalized username)
-          rank: index + 1, // Assign rank based on sorted order
-          username: data.username, // Display username from Firestore
+          id: doc.id,
+          username: data.username,
           elo: data.elo,
           highestWpm: data.highestWpm,
           timestamp: data.timestamp,
+          rank: index + 1
         });
       });
       setLeaderboard(fetchedEntries);
@@ -42,7 +48,7 @@ export function EloLeaderboard() {
       setIsLoading(false);
     });
 
-    return () => unsubscribe(); 
+    return () => unsubscribe();
   }, []);
 
   if (isLoading) {
@@ -87,7 +93,7 @@ export function EloLeaderboard() {
   return (
     <Card className="h-full border-primary/30 shadow-md flex flex-col">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center text-lg text-primary">
+        <CardTitle className="flex items-center justify-center text-lg text-primary">
           <TrendingUp className="w-5 h-5 mr-2" />
           Global Leaderboard
         </CardTitle>
@@ -104,24 +110,28 @@ export function EloLeaderboard() {
             return (
               <li 
                 key={entry.id} 
-                className="flex items-center justify-between p-2 rounded-md bg-card/60 hover:bg-primary/10 transition-colors text-sm"
+                className="flex flex-col p-2 rounded-md bg-card/60 hover:bg-primary/10 transition-colors text-sm"
               >
-                <div className="flex items-center space-x-2 overflow-hidden">
-                  <span className={cn(
-                    "font-semibold w-6 text-center flex-shrink-0", 
-                    entry.rank === 1 ? "text-accent" : "text-muted-foreground"
-                  )}>
-                    {rankDisplay}
-                  </span>
-                  <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <span className="font-medium truncate" title={displayName}>{displayName}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-2">
+                    <span className={cn(
+                      "font-semibold w-6 text-center flex-shrink-0", 
+                      entry.rank === 1 ? "text-accent" : "text-muted-foreground"
+                    )}>
+                      {rankDisplay}
+                    </span>
+                    <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="font-medium text-primary truncate" title={displayName}>
+                      {displayName}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3 flex-shrink-0">
-                  <span className="font-bold text-primary text-right w-12">
-                    {Number.isFinite(entry.elo) ? entry.elo : 'N/A'}
+                <div className="flex justify-end items-center space-x-4 mt-1 pr-2">
+                  <span className="font-bold text-accent text-right">
+                    {Number.isFinite(entry.highestWpm) ? `${entry.highestWpm} WPM` : 'N/A'}
                   </span>
-                  <span className="text-muted-foreground text-xs text-right w-16">
-                    ({Number.isFinite(entry.highestWpm) ? entry.highestWpm : 'N/A'} WPM)
+                  <span className="text-muted-foreground text-xs text-right w-12">
+                    {Number.isFinite(entry.elo) ? entry.elo : 'N/A'}
                   </span>
                 </div>
               </li>
