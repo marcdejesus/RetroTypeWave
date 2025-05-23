@@ -67,8 +67,8 @@ export default {
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)', // Will be very small or 0 if radius is small
-  			sm: 'calc(var(--radius) - 4px)'  // Will be very small or 0
+  			md: 'calc(var(--radius) - 2px)', 
+  			sm: 'calc(var(--radius) - 4px)'  
   		},
   		keyframes: {
   			'accordion-down': {

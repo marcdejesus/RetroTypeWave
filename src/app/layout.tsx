@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { VT323 as FontSans } from 'next/font/google'; // Changed font
+import { Inter as FontSans } from 'next/font/google'; // Changed font
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
@@ -14,7 +14,7 @@ import { SocialMediaLinks } from '@/components/SocialMediaLinks'; // Import Soci
 const fontSans = FontSans({
   subsets: ['latin'],
   variable: '--font-sans',
-  weight: '400', // VT323 typically has one weight
+  // weight: '400', // Inter supports multiple weights, can be omitted or specified
 });
 
 export const metadata: Metadata = {
