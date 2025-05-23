@@ -38,7 +38,7 @@ export default function HomePage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             {/* Replace Zap icon with Image component */}
-            <Image src="/logo.png" alt="Retro Type Wave Logo" width={64} height={64} className="text-primary" />
+            <Image src="/logo.png" alt="Retro Type Wave Logo" width={80} height={80} className="text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">Welcome to Retro Type Wave!</CardTitle>
           <CardDescription className="text-lg text-card-foreground/90">

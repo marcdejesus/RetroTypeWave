@@ -15,7 +15,7 @@ export function SiteHeader() {
       <div className="container flex h-14 items-center px-4">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           {/* Replace BotMessageSquare icon with Image component */}
-          <Image src="/logo.png" alt="Retro Type Wave Logo" width={24} height={24} className="text-primary" />
+          <Image src="/logo.png" alt="Retro Type Wave Logo" width={36} height={36} className="text-primary" />
           <span className="font-bold sm:inline-block text-lg">
             Retro Type Wave
           </span>
