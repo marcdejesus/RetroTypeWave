@@ -13,10 +13,10 @@ interface SocialLinkProps {
 }
 
 const socialLinks: SocialLinkProps[] = [
-  { href: "https://twitter.com/yourprofile", icon: Twitter, label: "Twitter" },
-  { href: "https://instagram.com/yourprofile", icon: Instagram, label: "Instagram" },
-  { href: "https://github.com/yourprofile", icon: Github, label: "GitHub" },
-  { href: "https://linkedin.com/in/yourprofile", icon: Linkedin, label: "LinkedIn" },
+  { href: "https://x.com/marcdejesusdev", icon: Twitter, label: "Twitter / X" },
+  { href: "https://www.instagram.com/marcdejesusdev/", icon: Instagram, label: "Instagram" },
+  { href: "https://github.com/marcdejesus", icon: Github, label: "GitHub" },
+  { href: "https://www.linkedin.com/in/marc-de-jes%C3%BAs-075185252/", icon: Linkedin, label: "LinkedIn" },
 ];
 
 export function SocialMediaLinks() {
