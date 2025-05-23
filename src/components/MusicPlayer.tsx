@@ -20,9 +20,17 @@ interface Song {
 // For example, if your file is at `public/music/neon-cruiser.mp3`,
 // the src path should be `/music/neon-cruiser.mp3`.
 const initialPlaylist: Song[] = [
-  { id: 1, name: "Neon Cruiser", artist: "SynthWave Pro", src: "/music/neon-cruiser.mp3" },
-  { id: 2, name: "Pixel Paradise", artist: "8-Bit Beast", src: "/music/pixel-paradise.mp3" },
-  { id: 3, name: "Sunset Drive", artist: "Retro Rewind", src: "/music/sunset-drive.mp3" },
+  { id: 1, name: "Amnesia", artist: "Moochie", src: "/music/AmnesiaByMoochie.mp3" },
+  { id: 2, name: "Too Soon", artist: "Diamond Ace", src: "/music/TooSoonByDiamondAce.mp3" },
+  { id: 3, name: "Every Day 80's", artist: "Wayne John Bradley", src: "/music/EveryDay80sByWayneJohnBradley.mp3" },
+  { id: 4, name: "Disco Metropolis", artist: "Vyra", src: "/music/DiscoMetropolisByVyra.mp3"},
+  { id: 5, name: "Defense Matrix", artist: "Vyra", src: "/music/DefenseMatrixByVyra.mp3"},
+  { id: 6, name: "Cyber Punk", artist: "jiglr", src:"/music/Cyberpunkbyjiglr"},
+  { id: 7, name: "NIGHT RIDER", artist: "jiglr", src: "/music/NIGHTRIDERByjiglr.mp3"},
+  { id: 8, name: "ESCAPE", artist: "Aries Beats", src: "/music/ESCAPEbyAriesBeats.mp3"},
+  { id: 9, name: "GREGORIAN CHANT", artist: "Aries Beats", src: "/music/GREGORIANCHANTbyAriesBeats.mp3"},
+  { id: 10, name: "NEON DRIVE", artist: "Ghostrifter", src:"/music/NEON_DRIVEByGhostrifter.mp3"}
+
 ];
 
 // Helper to format time from seconds to MM:SS
