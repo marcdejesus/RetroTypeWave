@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Clock, Zap } from 'lucide-react';
 import { RACE_DURATIONS } from '@/lib/constants';
-import Image from 'next/image';
+// Image import removed as it's no longer used
 
 export default function HomePage() {
   const [selectedDuration, setSelectedDuration] = useState<string>(RACE_DURATIONS[1].toString());
@@ -55,6 +55,7 @@ export default function HomePage() {
               ))}
             </RadioGroup>
           </div>
+          {/* Removed Image component
           <Image 
             src="https://placehold.co/600x300.png" 
             alt="Typing Race Illustration"
@@ -63,6 +64,7 @@ export default function HomePage() {
             height={300} 
             className="rounded-md object-cover aspect-video"
           />
+          */}
         </CardContent>
         <CardFooter>
           <Button onClick={handleStartRace} className="w-full text-lg py-6" size="lg">
