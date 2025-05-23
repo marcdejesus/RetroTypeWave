@@ -21,14 +21,14 @@ export default function HomePage() {
   return (
     <div
       className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/retrowave-background.gif')" }} // Placeholder for your GIF
+      style={{ backgroundImage: "url('/retrowave-background.gif')" }}
       data-ai-hint="retrowave city sunset"
     >
       {/* Adding a semi-transparent overlay to make the card more readable over the GIF */}
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-background/70"></div> {/* Removed backdrop-blur-sm */}
       
       {/* Card needs to be above the overlay */}
-      <Card className="w-full max-w-md z-10 bg-card/80 backdrop-blur-md border-primary/50">
+      <Card className="w-full max-w-md z-10 bg-card/80 border-primary/50"> {/* Removed backdrop-blur-md */}
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Zap className="w-16 h-16 text-primary" />
