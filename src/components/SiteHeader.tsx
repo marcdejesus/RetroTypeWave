@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -20,7 +19,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center px-4"> {/* Main container for alignment */}
+      <div className="container max-w-7xl mx-auto flex h-20 items-center px-4 justify-between">
         {/* Left Group: Logo + Title - Takes natural width */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -32,7 +31,7 @@ export function SiteHeader() {
         </div>
 
         {/* Middle Group: Nav Links - Expands and centers its content */}
-        <nav className="flex-1 flex justify-center items-center space-x-2 md:space-x-4">
+        <nav className="flex items-center space-x-6 md:space-x-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
