@@ -4,7 +4,7 @@
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserElo } from '@/hooks/useUserElo';
-import { useAuth } from '@/hooks/useAuth';
+// Removed useAuth as it's no longer used for authentication
 import { generateAITypingSpeed } from '@/lib/ai-opponent';
 import { generateRandomPrompt, BOT_NAMES, AVATAR_PLACEHOLDER_URL, COUNTDOWN_SECONDS, ELO_K_FACTOR, INITIAL_ELO } from '@/lib/constants';
 import type { PlayerStats, RaceStatus } from '@/types';
@@ -20,10 +20,11 @@ import { cn } from '@/lib/utils';
 function RacePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: authedUser, loadingAuthState } = useAuth();
+  // Use useUserElo for local player's Elo, WPM, username
   const { 
     elo: currentUserElo, 
     highestWpm: currentUserHighestWpm, 
+    username: currentUsername,
     updateUserElo, 
     updateUserHighestWpm, 
     isLoading: eloDataLoading 
@@ -41,10 +42,13 @@ function RacePageContent() {
   const promptWords = useRef<string[]>([]);
   
   const [players, setPlayers] = useState<PlayerStats[]>([]);
-  const [userPlayerId, setUserPlayerId] = useState<string | null>(null); // Will be authedUser.uid or 'user'
+  const userPlayerId = 'local-user'; // Static ID for the local player
 
   const [eloChange, setEloChange] = useState(0);
   const [resultsCalculated, setResultsCalculated] = useState(false);
+  const [finalUserWpmForResults, setFinalUserWpmForResults] = useState<number | null>(null);
+  const [isNewHighestWpmForResults, setIsNewHighestWpmForResults] = useState(false);
+
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const raceStartTimeRef = useRef<number | null>(null);
@@ -55,13 +59,12 @@ function RacePageContent() {
 
   const initializedForDurationRef = useRef<number | null>(null);
 
-  const isLoading = eloDataLoading || loadingAuthState;
+  const isLoading = eloDataLoading; // Simplified loading state
 
   useEffect(() => {
     if (isLoading || currentUserElo === null) return;
 
     if (initializedForDurationRef.current === raceDuration && raceStatus !== 'waiting') {
-        // Update user's ELO in players array if it changed mid-race (e.g. from another tab)
         setPlayers(prevPlayers => prevPlayers.map(p => {
             if (p.id === userPlayerId && p.elo !== currentUserElo) {
                 return { ...p, elo: currentUserElo };
@@ -74,15 +77,12 @@ function RacePageContent() {
     const newPrompt = generateRandomPrompt();
     setCurrentRacePrompt(newPrompt);
     promptWords.current = newPrompt.split(' ');
-
-    const userId = authedUser ? authedUser.uid : 'user-local';
-    const userName = authedUser ? (authedUser.displayName || 'You') : 'You';
-    const userAvatar = authedUser ? (authedUser.photoURL || AVATAR_PLACEHOLDER_URL(userName)) : AVATAR_PLACEHOLDER_URL('U');
     
-    setUserPlayerId(userId);
-
+    const userName = currentUsername || 'Player'; // Use stored username or default
+    const userAvatar = AVATAR_PLACEHOLDER_URL(userName);
+    
     const user: PlayerStats = {
-      id: userId,
+      id: userPlayerId,
       name: userName,
       isBot: false,
       wpm: 0,
@@ -100,7 +100,7 @@ function RacePageContent() {
       accuracy: 90 + Math.floor(Math.random() * 10), 
       progress: 0,
       avatarUrl: AVATAR_PLACEHOLDER_URL(name),
-      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100),
+      elo: Math.max(500, currentUserElo + Math.floor(Math.random() * 200) - 100), // Bot ELO for simulation
     }));
 
     setPlayers([user, ...initialBots]);
@@ -114,12 +114,14 @@ function RacePageContent() {
     setCountdown(COUNTDOWN_SECONDS);
     setEloChange(0);
     setResultsCalculated(false);
+    setFinalUserWpmForResults(null);
+    setIsNewHighestWpmForResults(false);
     raceStartTimeRef.current = null;
     if(timerRef.current) clearInterval(timerRef.current);
 
     initializedForDurationRef.current = raceDuration;
 
-  }, [isLoading, currentUserElo, raceDuration, authedUser]);
+  }, [isLoading, currentUserElo, raceDuration, currentUsername]);
 
 
   const startCountdown = useCallback(async () => {
@@ -133,6 +135,7 @@ function RacePageContent() {
     setPlayers(prev => {
         const updatedPlayers = prev.map(p => {
             if (p.isBot) {
+                // Bot's simulated ELO for WPM generation can be its own 'elo' or derived from user's
                 const botEloForSpeedGeneration = p.elo ?? Math.max(500, currentUserElo + Math.floor(Math.random() * 100) - 50);
                 const botWpm = generateAITypingSpeed(botEloForSpeedGeneration);
                 return { ...p, wpm: botWpm, elo: botEloForSpeedGeneration };
@@ -142,7 +145,7 @@ function RacePageContent() {
         return updatedPlayers;
     });
 
-  }, [players, raceStatus, currentUserElo, raceDuration, currentRacePrompt]); 
+  }, [players, raceStatus, currentUserElo, currentRacePrompt]); 
 
   useEffect(() => {
     if (raceStatus === 'countdown') {
@@ -301,6 +304,7 @@ function RacePageContent() {
       setPlayers(currentPlayers => {
         const finalUserWpm = calculateCurrentWpm(true);
         const finalUserAccuracy = calculateCurrentAccuracy();
+        setFinalUserWpmForResults(finalUserWpm); // Store for results screen
 
         const finalPlayersState = currentPlayers.map(p => {
           if (p.id === userPlayerId) {
@@ -308,6 +312,7 @@ function RacePageContent() {
             const finalProgress = userCompletedPrompt ? 100 : p.progress;
             return { ...p, finalWpm: finalUserWpm, finalAccuracy: finalUserAccuracy, wpm: finalUserWpm, accuracy: finalUserAccuracy, progress: finalProgress };
           }
+          // Bot final progress calculation
           const elapsedTimeTotal = raceDuration; 
           const botCharsToTypePerMinute = (p.wpm || 30) * 5;
           const botCharsPerSecond = botCharsToTypePerMinute / 60;
@@ -336,7 +341,7 @@ function RacePageContent() {
           let totalEloChangeThisRace = 0;
 
           botsInRace.forEach(bot => {
-            const botElo = bot.elo ?? INITIAL_ELO;
+            const botElo = bot.elo ?? INITIAL_ELO; // Use bot's own Elo
             const expectedScore = 1 / (1 + Math.pow(10, (botElo - userEloForThisRace) / 400));
             
             let actualScore = 0;
@@ -354,10 +359,11 @@ function RacePageContent() {
         const newElo = userCurrentEloBeforeUpdate + calculatedEloChange;
         updateUserElo(newElo); 
 
-        // Update highest WPM if authenticated and new record
-        if (authedUser && userResult && userResult.finalWpm) {
-            if (currentUserHighestWpm === null || userResult.finalWpm > currentUserHighestWpm) {
+        if (userResult && userResult.finalWpm) {
+            const oldHighestWpm = currentUserHighestWpm ?? 0;
+            if (userResult.finalWpm > oldHighestWpm) {
                 updateUserHighestWpm(userResult.finalWpm);
+                setIsNewHighestWpmForResults(true);
             }
         }
         
@@ -365,7 +371,7 @@ function RacePageContent() {
         return rankedPlayers;
       });
     }
-  }, [raceStatus, resultsCalculated, currentUserElo, currentUserHighestWpm, players, updateUserElo, updateUserHighestWpm, userPlayerId, raceDuration, currentRacePrompt, currentWordIndex, authedUser]);
+  }, [raceStatus, resultsCalculated, currentUserElo, currentUserHighestWpm, players, updateUserElo, updateUserHighestWpm, userPlayerId, raceDuration, currentRacePrompt, currentWordIndex]);
 
   
   const getHighlightedPrompt = () => {
@@ -421,12 +427,14 @@ function RacePageContent() {
   if (raceStatus === 'waiting' && (players.length === 0 || currentRacePrompt.length === 0) && currentUserElo !== null) {
      return <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]"><Loader2 className="h-12 w-12 animate-spin text-primary" /> Initializing Race...</div>;
   }
-  if (currentUserElo === null && (raceStatus !== 'finished' || !resultsCalculated) ) { 
-     return <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] text-destructive">Error loading user data. Please refresh or sign in.</div>;
+   if (currentUserElo === null && (raceStatus !== 'finished' || !resultsCalculated) ) { 
+      // This case should be less likely now with cookie fallback, but good for robustness
+     return <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] text-destructive">Error loading player data. Please refresh.</div>;
   }
 
+
   if (raceStatus === 'finished') {
-    if (!resultsCalculated || players.length === 0 || !players.find(p => p.id === userPlayerId)?.rank || currentRacePrompt.length === 0) { 
+    if (!resultsCalculated || players.length === 0 || !players.find(p => p.id === userPlayerId)?.rank || currentRacePrompt.length === 0 || finalUserWpmForResults === null) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
           <Alert className="max-w-md shadow-lg">
@@ -443,10 +451,12 @@ function RacePageContent() {
     return (
       <RaceResultsScreen
         results={players}
-        currentUserElo={currentUserElo} 
+        currentUserEloFromRace={currentUserElo} // Pass the latest Elo from the hook (which includes this race's update)
         eloChange={eloChange}
         onPlayAgain={handlePlayAgain}
         onGoHome={handleGoHome}
+        isNewHighestWpm={isNewHighestWpmForResults}
+        finalUserWpmFromRace={finalUserWpmForResults}
       />
     );
   }

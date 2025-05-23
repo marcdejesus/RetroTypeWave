@@ -3,54 +3,47 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, limit, getDocs, DocumentData } from 'firebase/firestore';
-import { useAuth } from '@/hooks/useAuth';
-import type { LeaderboardUser, UserDocument } from '@/types';
+import { collection, query, orderBy, limit, onSnapshot, DocumentData } from 'firebase/firestore';
+import type { LeaderboardEntry } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Crown, TrendingUp, User } from 'lucide-react';
+import { Crown, TrendingUp, User, Zap } from 'lucide-react'; // Added Zap for WPM
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-const LEADERBOARD_LIMIT = 12;
+const LEADERBOARD_LIMIT = 10; // Let's keep it to top 10
 
 export function EloLeaderboard() {
-  const { user: authedUser } = useAuth();
-  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setIsLoading(true);
-      try {
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, orderBy('elo', 'desc'), limit(LEADERBOARD_LIMIT));
-        const querySnapshot = await getDocs(q);
-        
-        const fetchedUsers: LeaderboardUser[] = [];
-        querySnapshot.forEach((doc, index) => {
-          const data = doc.data() as Omit<UserDocument, 'uid' | 'createdAt' | 'lastLogin'>; // Firestore data() doesn't include id
-          fetchedUsers.push({
-            id: doc.id,
-            rank: index + 1,
-            name: data.displayName,
-            elo: data.elo,
-            highestWpm: data.highestWpm,
-            avatarUrl: data.photoURL,
-            isCurrentUser: authedUser?.uid === doc.id,
-          });
+    setIsLoading(true);
+    const leaderboardRef = collection(db, 'leaderboardEntries');
+    const q = query(leaderboardRef, orderBy('elo', 'desc'), limit(LEADERBOARD_LIMIT));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const fetchedEntries: LeaderboardEntry[] = [];
+      querySnapshot.forEach((doc, index) => {
+        const data = doc.data() as Omit<LeaderboardEntry, 'id'>;
+        fetchedEntries.push({
+          id: doc.id, // Username is the id
+          rank: index + 1,
+          username: data.username,
+          elo: data.elo,
+          highestWpm: data.highestWpm,
+          // No avatarUrl or isCurrentUser concept here for anonymous leaderboard
         });
-        setLeaderboard(fetchedUsers);
-      } catch (error) {
-        console.error("Error fetching leaderboard:", error);
-        // Handle error, maybe show a message
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      });
+      setLeaderboard(fetchedEntries);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching leaderboard:", error);
+      setIsLoading(false);
+      // Handle error, maybe show a message
+    });
 
-    fetchLeaderboard();
-  }, [authedUser]); // Re-fetch if auth user changes to highlight them
+    return () => unsubscribe(); // Clean up listener on component unmount
+  }, []);
 
   if (isLoading) {
     return (
@@ -58,16 +51,16 @@ export function EloLeaderboard() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center text-lg text-primary">
             <TrendingUp className="w-5 h-5 mr-2" />
-            Elo Leaderboard
+            Global Leaderboard
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-3 space-y-2">
           {[...Array(LEADERBOARD_LIMIT)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-2 p-2 rounded-md bg-card/60">
-              <Skeleton className="h-7 w-6" />
-              <Skeleton className="h-7 w-7 rounded-full" />
-              <Skeleton className="h-4 flex-1" />
-              <Skeleton className="h-4 w-12" />
+            <div key={i} className="flex items-center space-x-2 p-2 rounded-md bg-card/60 h-10">
+              <Skeleton className="h-5 w-6" /> {/* Rank */}
+              <Skeleton className="h-5 flex-1" /> {/* Username */}
+              <Skeleton className="h-5 w-12" /> {/* Elo */}
+              <Skeleton className="h-5 w-10" /> {/* WPM */}
             </div>
           ))}
         </CardContent>
@@ -81,11 +74,11 @@ export function EloLeaderboard() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center text-lg text-primary">
             <TrendingUp className="w-5 h-5 mr-2" />
-            Elo Leaderboard
+            Global Leaderboard
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center p-3">
-            <p className="text-muted-foreground">No players on the leaderboard yet.</p>
+            <p className="text-muted-foreground">Leaderboard is empty. Be the first!</p>
         </CardContent>
       </Card>
     )
@@ -96,39 +89,32 @@ export function EloLeaderboard() {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-lg text-primary">
           <TrendingUp className="w-5 h-5 mr-2" />
-          Elo Leaderboard
+          Global Leaderboard
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-3">
-        <ul className="space-y-2 pr-1">
-          {leaderboard.map((player) => (
+        <ul className="space-y-1 pr-1">
+          {leaderboard.map((entry) => (
             <li 
-              key={player.id} 
-              className={cn(
-                "flex items-center justify-between p-2 rounded-md transition-colors hover:bg-primary/10",
-                player.isCurrentUser ? "bg-primary/20" : "bg-card/60"
-              )}
+              key={entry.id} 
+              className="flex items-center justify-between p-2 rounded-md bg-card/60 hover:bg-primary/10 transition-colors text-sm"
             >
               <div className="flex items-center space-x-2 overflow-hidden">
                 <span className={cn(
-                  "text-sm font-semibold w-6 text-center flex-shrink-0", 
-                  player.rank === 1 ? "text-accent" : player.isCurrentUser ? "text-primary-foreground" : "text-muted-foreground"
+                  "font-semibold w-6 text-center flex-shrink-0", 
+                  entry.rank === 1 ? "text-accent" : "text-muted-foreground"
                 )}>
-                  {player.rank === 1 ? <Crown className="w-4 h-4 inline-block text-accent" /> : player.rank}
+                  {entry.rank === 1 ? <Crown className="w-4 h-4 inline-block text-accent" /> : entry.rank}
                 </span>
-                <Avatar className="h-7 w-7 flex-shrink-0">
-                  <AvatarImage src={player.avatarUrl} alt={player.name} data-ai-hint="person avatar"/>
-                  <AvatarFallback className={player.isCurrentUser ? "bg-primary-foreground text-primary" : ""}>{player.name.substring(0,1).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className={cn("text-sm font-medium truncate", player.isCurrentUser ? "text-primary-foreground" : "")}>{player.name}</span>
-                 <User className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                <User className="w-4 h-4 text-muted-foreground flex-shrink-0" /> {/* Generic user icon */}
+                <span className="font-medium truncate" title={entry.username}>{entry.username}</span>
               </div>
-              <div className="flex flex-col items-end flex-shrink-0">
-                <span className={cn("text-sm font-bold", player.isCurrentUser ? "text-primary-foreground" : "text-primary")}>
-                  {player.elo}
+              <div className="flex items-center space-x-3 flex-shrink-0">
+                <span className="font-bold text-primary text-right w-12">
+                  {entry.elo}
                 </span>
-                <span className={cn("text-xs", player.isCurrentUser ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                  ({player.highestWpm} WPM)
+                <span className="text-muted-foreground text-xs text-right w-16">
+                  ({entry.highestWpm} WPM)
                 </span>
               </div>
             </li>

@@ -1,33 +1,107 @@
 
 "use client";
 
-import type { PlayerStats } from '@/types';
+import React, { useState, useEffect } from 'react';
+import type { PlayerStats, LeaderboardEntry } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat, Star } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Corrected path
+import { Trophy, TrendingUp, TrendingDown, Percent, Gauge, User, Bot, Home, Repeat, Star, UploadCloud, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useUserElo } from '@/hooks/useUserElo'; // To submit score
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
+
+const LEADERBOARD_SIZE_FOR_QUALIFICATION = 10; // Check against top 10 for qualification
 
 interface RaceResultsScreenProps {
   results: PlayerStats[];
-  currentUserElo: number | null; // This will be the new Elo after the race
+  currentUserEloFromRace: number | null; // Elo *after* this race's change
   eloChange: number;
   onPlayAgain: () => void;
   onGoHome: () => void;
-  isNewHighestWpm?: boolean; // Optional: to highlight new WPM record
+  isNewHighestWpm?: boolean;
+  finalUserWpmFromRace: number | null; // Pass the user's WPM for this race
 }
 
 export function RaceResultsScreen({
   results,
-  currentUserElo,
+  currentUserEloFromRace,
   eloChange,
   onPlayAgain,
   onGoHome,
   isNewHighestWpm = false,
+  finalUserWpmFromRace,
 }: RaceResultsScreenProps) {
   const sortedResults = [...results].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
-  
   const userResult = results.find(p => !p.isBot);
+
+  const { username: initialUsername, updateUserUsername, submitToGlobalLeaderboard } = useUserElo();
+  const [usernameInput, setUsernameInput] = useState(initialUsername || '');
+  const [canSubmitToLeaderboard, setCanSubmitToLeaderboard] = useState(false);
+  const [isCheckingQualification, setIsCheckingQualification] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkQualification = async () => {
+      if (!currentUserEloFromRace || !finalUserWpmFromRace) {
+        setCanSubmitToLeaderboard(false);
+        setIsCheckingQualification(false);
+        return;
+      }
+      setIsCheckingQualification(true);
+      try {
+        const leaderboardRef = collection(db, 'leaderboardEntries');
+        const q = query(leaderboardRef, orderBy('elo', 'desc'), limit(LEADERBOARD_SIZE_FOR_QUALIFICATION));
+        const snapshot = await getDocs(q);
+        const leaderboardEntries: LeaderboardEntry[] = [];
+        snapshot.forEach(doc => leaderboardEntries.push(doc.data() as LeaderboardEntry));
+
+        if (leaderboardEntries.length < LEADERBOARD_SIZE_FOR_QUALIFICATION) {
+          setCanSubmitToLeaderboard(true); // Can submit if leaderboard is not full
+        } else {
+          const lowestEloOnLeaderboard = leaderboardEntries[leaderboardEntries.length - 1]?.elo;
+          if (currentUserEloFromRace > lowestEloOnLeaderboard) {
+            setCanSubmitToLeaderboard(true); // Can submit if Elo is higher than lowest on full leaderboard
+          } else {
+            setCanSubmitToLeaderboard(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking leaderboard qualification:", error);
+        setCanSubmitToLeaderboard(false); // Default to false on error
+      } finally {
+        setIsCheckingQualification(false);
+      }
+    };
+
+    checkQualification();
+  }, [currentUserEloFromRace, finalUserWpmFromRace]);
+
+  const handleLeaderboardSubmit = async () => {
+    if (!usernameInput.trim() || !currentUserEloFromRace || !finalUserWpmFromRace) {
+        toast({ title: "Error", description: "Username is required.", variant: "destructive" });
+        return;
+    }
+    setIsSubmitting(true);
+    setSubmissionStatus('idle');
+    const success = await submitToGlobalLeaderboard(usernameInput, currentUserEloFromRace, finalUserWpmFromRace);
+    if (success) {
+      updateUserUsername(usernameInput); // Save username to cookie
+      toast({ title: "Success!", description: "Your score has been submitted to the leaderboard." });
+      setSubmissionStatus('success');
+      setCanSubmitToLeaderboard(false); // Prevent re-submission
+    } else {
+      toast({ title: "Submission Failed", description: "Could not submit score. Please try again.", variant: "destructive" });
+      setSubmissionStatus('error');
+    }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-8">
@@ -37,9 +111,9 @@ export function RaceResultsScreen({
             <Trophy className="w-12 h-12 text-accent" />
           </div>
           <CardTitle className="text-3xl font-bold">Race Over!</CardTitle>
-          {userResult && typeof currentUserElo === 'number' && (
+          {userResult && typeof currentUserEloFromRace === 'number' && (
             <CardDescription className="text-lg pt-2">
-              Your new Elo: <span className="font-semibold">{currentUserElo}</span>
+              Your new Elo: <span className="font-semibold">{currentUserEloFromRace}</span>
               {eloChange !== 0 && (
                 eloChange > 0 ? (
                   <TrendingUp className="inline-block w-5 h-5 ml-2 text-green-500" />
@@ -53,7 +127,7 @@ export function RaceResultsScreen({
               {isNewHighestWpm && userResult.finalWpm && (
                  <div className="text-sm text-accent mt-1 flex items-center justify-center">
                     <Star className="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400" />
-                    New Highest WPM: {userResult.finalWpm}!
+                    New Personal Best WPM: {userResult.finalWpm}!
                  </div>
               )}
             </CardDescription>
@@ -61,7 +135,7 @@ export function RaceResultsScreen({
         </CardHeader>
 
         <CardContent>
-          <div className="max-h-[50vh] overflow-y-auto pr-1">
+          <div className="max-h-[40vh] overflow-y-auto pr-1 mb-6">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -101,6 +175,41 @@ export function RaceResultsScreen({
               </TableBody>
             </Table>
           </div>
+
+          {isCheckingQualification && (
+            <div className="flex items-center justify-center my-4 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Checking leaderboard qualification...
+            </div>
+          )}
+
+          {!isCheckingQualification && canSubmitToLeaderboard && submissionStatus !== 'success' && (
+            <div className="space-y-4 p-4 border-t border-dashed">
+              <Label htmlFor="username" className="text-base font-semibold text-center block text-accent">You qualified for the Leaderboard!</Label>
+              <div className="flex flex-col sm:flex-row gap-2 items-end">
+                <div className="flex-grow w-full sm:w-auto">
+                    <Label htmlFor="usernameInput" className="text-xs text-muted-foreground">Enter your Username</Label>
+                    <Input
+                    id="usernameInput"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                    placeholder="Your cool name"
+                    className="text-base"
+                    maxLength={20}
+                    />
+                </div>
+                <Button onClick={handleLeaderboardSubmit} disabled={isSubmitting || !usernameInput.trim()} className="w-full sm:w-auto">
+                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                  Submit Score
+                </Button>
+              </div>
+              {submissionStatus === 'error' && <p className="text-sm text-destructive text-center">Failed to submit. Please try again.</p>}
+            </div>
+          )}
+           {submissionStatus === 'success' && (
+            <p className="text-center text-green-500 font-semibold my-4">Score submitted successfully!</p>
+           )}
+
+
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
