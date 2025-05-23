@@ -48,7 +48,7 @@ function RacePageContent() {
 
   // Initialize players
   useEffect(() => {
-    if (eloLoading || !currentUserElo) return;
+    if (eloLoading || currentUserElo === null) return; // Ensure currentUserElo is not null
 
     const user: PlayerStats = {
       id: 'user',
@@ -79,7 +79,7 @@ function RacePageContent() {
 
 
   const startCountdown = useCallback(() => {
-    if (players.length === 0 || raceStatus !== 'waiting') return;
+    if (players.length === 0 || raceStatus !== 'waiting' || currentUserElo === null) return;
     setRaceStatus('countdown');
     setCountdown(COUNTDOWN_SECONDS);
     inputRef.current?.focus();
@@ -88,8 +88,8 @@ function RacePageContent() {
     players.filter(p => p.isBot).forEach(async bot => {
       try {
         const aiInput: SimulateBotSpeedInput = {
-          userWpm: players.find(p => !p.isBot)?.wpm || 40, // Use user's last WPM or average
-          userElo: currentUserElo ?? INITIAL_ELO,
+          userWpm: players.find(p => !p.isBot)?.wpm || 40, 
+          userElo: currentUserElo ?? INITIAL_ELO, // Ensure elo is not null
           raceDuration: raceDuration,
         };
         const response = await simulateBotSpeed(aiInput);
@@ -111,6 +111,7 @@ function RacePageContent() {
         setRaceStatus('racing');
         raceStartTimeRef.current = Date.now();
         setTimeLeft(raceDuration);
+        inputRef.current?.focus(); // Ensure focus when race starts
       }
       return () => timerRef.current && clearTimeout(timerRef.current);
     }
@@ -134,7 +135,7 @@ function RacePageContent() {
         // Update bot progress
         setPlayers(prevPlayers => prevPlayers.map(p => {
           if (p.isBot && p.progress < 100) {
-            const charsToType = p.wpm * 5; // Chars per minute
+            const charsToType = p.wpm * 5; 
             const charsPerSecond = charsToType / 60;
             const botTypedChars = charsPerSecond * elapsedTimeSeconds;
             const progress = Math.min(100, (botTypedChars / PROMPT_TEXT.length) * 100);
@@ -142,7 +143,7 @@ function RacePageContent() {
           }
           return p;
         }));
-      }, 100); // Update more frequently for smoother bot progress
+      }, 100); 
       return () => timerRef.current && clearInterval(timerRef.current);
     }
   }, [raceStatus, raceDuration]);
@@ -164,36 +165,49 @@ function RacePageContent() {
     if (lastCharIsSpace) {
       if (typedWord === currentPromptWord) {
         typedCharsCorrectRef.current += typedWord.length + 1; // +1 for space
-        setCurrentWordIndex(prev => prev + 1);
-        setUserInput('');
+      }
+      // Always move to next word on space, whether correct or incorrect.
+      // Accuracy is penalized by not adding to typedCharsCorrectRef if incorrect.
+      setCurrentWordIndex(prev => prev + 1);
+      setUserInput('');
 
-        if (currentWordIndex + 1 === promptWords.current.length) {
-          setRaceStatus('finished'); // User finished the prompt
+      if (currentWordIndex + 1 >= promptWords.current.length) {
+         // User completed all words, but race continues until time up or prompt finished.
+         // If this is the last word, and time is not up, user has finished.
+        const userPlayer = players.find(p => p.id === userPlayerId);
+        if (userPlayer && userPlayer.progress < 100) {
+           // Force progress to 100 if they type the whole prompt
+           setPlayers(prev => prev.map(p => p.id === userPlayerId ? {...p, progress: 100} : p));
         }
-      } else {
-        // Incorrect word, still count space
-        typedCharsCorrectRef.current += value.split('').filter((char, i) => char === (currentPromptWord + ' ')[i]).length;
-        setCurrentWordIndex(prev => prev + 1); // Move to next word even if incorrect, for simplicity. Could be more strict.
-        setUserInput('');
+        if (timeLeft > 0) { // Only finish race if prompt is completed AND user typed it all
+            // To prevent premature finish if they type faster than prompt length allows within time
+            // This logic seems a bit complex, let's simplify: race ends when time is up OR user types whole prompt.
+        }
       }
     } else {
       setUserInput(value);
     }
-
-    // Update WPM and Accuracy for user
+    
+    const userTypedChars = typedCharsCorrectRef.current + (value.length - (value.split(' ').length -1)); // More accurate char count for WPM
     const elapsedTimeSeconds = (Date.now() - (raceStartTimeRef.current ?? Date.now())) / 1000;
+
     if (elapsedTimeSeconds > 0) {
-      const wordsTyped = typedCharsCorrectRef.current / 5;
+      const wordsTyped = userTypedChars / 5;
       const wpm = Math.round((wordsTyped / elapsedTimeSeconds) * 60);
       const accuracy = totalTypedCharsRef.current > 0 ? Math.round((typedCharsCorrectRef.current / totalTypedCharsRef.current) * 100) : 0;
       
       setPlayers(prev => prev.map(p => {
         if (p.id === userPlayerId) {
-          const progress = (typedCharsCorrectRef.current / PROMPT_TEXT.length) * 100;
+          const progress = (userTypedChars / PROMPT_TEXT.length) * 100;
           return { ...p, wpm, accuracy: Math.max(0, Math.min(100, accuracy)), progress: Math.min(100, progress) };
         }
         return p;
       }));
+
+      // Check if user completed the prompt
+      if (currentWordIndex >= promptWords.current.length -1 && value.trim() === promptWords.current[promptWords.current.length -1] ) {
+        setRaceStatus('finished'); 
+      }
     }
   };
 
@@ -203,60 +217,69 @@ function RacePageContent() {
       if (timerRef.current) clearInterval(timerRef.current);
       
       const finalPlayersState = players.map(p => {
-        const finalWpm = p.isBot ? p.wpm : Math.round(p.wpm); // Bots WPM is fixed, user's is calculated
-        const finalAccuracy = p.isBot ? 95 + Math.floor(Math.random()*5) : Math.round(p.accuracy); // User's accuracy is calculated
+        const finalWpm = p.isBot ? p.wpm : Math.round(p.wpm); 
+        const finalAccuracy = p.isBot ? (p.accuracy || 95) : Math.max(0, Math.min(100, Math.round(p.accuracy))); // Ensure accuracy is within bounds
         return { ...p, finalWpm, finalAccuracy };
       });
-      setPlayers(finalPlayersState);
-
-      // Calculate Elo change
-      const user = finalPlayersState.find(p => !p.isBot);
-      const bots = finalPlayersState.filter(p => p.isBot);
       
-      if (user && currentUserElo) {
+      // Sort by finalWPM then finalAccuracy to assign ranks
+      const rankedPlayers = [...finalPlayersState].sort((a, b) => {
+        if ((b.finalWpm ?? 0) !== (a.finalWpm ?? 0)) {
+          return (b.finalWpm ?? 0) - (a.finalWpm ?? 0);
+        }
+        return (b.finalAccuracy ?? 0) - (a.finalAccuracy ?? 0);
+      }).map((player, index) => ({ ...player, rank: index + 1 }));
+
+      setPlayers(rankedPlayers);
+
+      const user = rankedPlayers.find(p => !p.isBot);
+      const bots = rankedPlayers.filter(p => p.isBot);
+      
+      if (user && currentUserElo !== null) { // Ensure currentUserElo is not null
         let totalEloChange = 0;
         bots.forEach(bot => {
-          const expectedScore = 1 / (1 + Math.pow(10, ((bot.elo ?? INITIAL_ELO) - currentUserElo) / 400));
+          const expectedScore = 1 / (1 + Math.pow(10, ((bot.elo ?? INITIAL_ELO) - (user.elo ?? INITIAL_ELO)) / 400)); // Use user's current elo for calc
           let actualScore = 0;
           if ((user.finalWpm ?? 0) > (bot.finalWpm ?? 0)) actualScore = 1;
           else if ((user.finalWpm ?? 0) === (bot.finalWpm ?? 0)) actualScore = 0.5;
           
-          // Factor in accuracy for score adjustment (e.g. 0.8 to 1.2 multiplier)
           const accuracyFactor = 0.8 + (user.finalAccuracy ?? 0) / 100 * 0.4;
           actualScore *= accuracyFactor;
 
           totalEloChange += ELO_K_FACTOR * (actualScore - expectedScore);
         });
         
-        const finalEloChange = Math.round(totalEloChange / bots.length); // Average change
+        const finalEloChange = bots.length > 0 ? Math.round(totalEloChange / bots.length) : Math.round(totalEloChange); 
         setEloChange(finalEloChange);
-        updateUserElo(currentUserElo + finalEloChange);
+        updateUserElo((currentUserElo ?? INITIAL_ELO) + finalEloChange); // Use current elo for update
       }
       setShowResults(true);
     }
-  }, [raceStatus, players, currentUserElo, updateUserElo]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raceStatus, currentUserElo, updateUserElo]); // Removed players from deps to avoid loop, ELO logic depends on final state.
 
-
-  const currentTypedChars = userInput.length + promptWords.current.slice(0, currentWordIndex).join(' ').length + (currentWordIndex > 0 ? 1 : 0);
   
   const getHighlightedPrompt = () => {
+    if (currentWordIndex >= promptWords.current.length) {
+        return <span className="text-accent">Prompt completed!</span>;
+    }
     let completedText = promptWords.current.slice(0, currentWordIndex).join(' ') + (currentWordIndex > 0 ? ' ' : '');
     let currentWordText = promptWords.current[currentWordIndex] || '';
     let futureText = promptWords.current.slice(currentWordIndex + 1).join(' ');
 
     return (
       <>
-        <span className="text-accent">{completedText}</span> {/* Was text-green-500 */}
+        <span className="text-accent">{completedText}</span>
         {currentWordText.split('').map((char, idx) => (
           <span
             key={idx}
             className={cn(
               idx < userInput.length
                 ? userInput[idx] === char
-                  ? 'text-primary' // Correctly typed char in current word (was text-blue-500)
-                  : 'text-destructive bg-destructive/20' // Incorrectly typed char (was text-red-500 bg-red-100)
-                : 'text-foreground', // Not yet typed char in current word
-              idx === userInput.length ? 'border-b-2 border-primary animate-pulse' : '' // Caret position
+                  ? 'text-primary' 
+                  : 'text-destructive bg-destructive/20' 
+                : 'text-foreground', 
+              idx === userInput.length ? 'border-b-2 border-primary animate-pulse' : '' 
             )}
           >
             {char}
@@ -270,22 +293,39 @@ function RacePageContent() {
 
   const handlePlayAgain = () => {
     setShowResults(false);
-    router.push('/');
+    // Reset relevant race state for a new game
+    setRaceStatus('waiting');
+    setTimeLeft(raceDuration);
+    setCountdown(COUNTDOWN_SECONDS);
+    setUserInput('');
+    setCurrentWordIndex(0);
+    typedCharsCorrectRef.current = 0;
+    totalTypedCharsRef.current = 0;
+    raceStartTimeRef.current = null;
+    setEloChange(0);
+    // Re-initialize players (this will happen in useEffect due to currentUserElo dependency)
+    // Trigger re-fetch of Elo or use existing, then re-init players
+    router.push('/'); 
   };
 
-  if (eloLoading || players.length === 0) {
+  const handleCloseResults = () => {
+    setShowResults(false);
+    router.push('/'); // Or to a dashboard if you prefer
+  }
+
+  if (eloLoading || players.length === 0 || currentUserElo === null) { // Check for currentUserElo null
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="space-y-6">
-      <Card> {/* Removed shadow */}
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl flex items-center">
             <Keyboard className="w-7 h-7 mr-3 text-primary" /> Type The Prompt
           </CardTitle>
           <div className="flex items-center space-x-4 text-lg">
-            <div className="flex items-center text-accent-foreground bg-accent px-3 py-1 rounded-md"> {/* Removed shadow-sm */}
+            <div className="flex items-center text-accent-foreground bg-accent px-3 py-1 rounded-md">
               <TimerIcon className="w-5 h-5 mr-2" />
               <span>{Math.ceil(timeLeft)}s</span>
             </div>
@@ -302,7 +342,7 @@ function RacePageContent() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-xl p-4 border rounded-md min-h-[120px] bg-background leading-relaxed shadow-inner select-none whitespace-pre-wrap">
+          <div className="text-xl p-4 border rounded-md min-h-[120px] bg-background leading-relaxed shadow-inner select-none whitespace-pre-wrap font-mono"> {/* Added font-mono for better char alignment */}
             {raceStatus === 'countdown' ? (
               <div className="text-6xl font-bold text-primary text-center animate-ping">{countdown}</div>
             ) : (
@@ -313,17 +353,17 @@ function RacePageContent() {
             ref={inputRef}
             value={userInput}
             onChange={handleUserInputChange}
-            placeholder={raceStatus === 'racing' ? "Start typing here..." : "Waiting for race to start..."}
-            className="mt-4 text-lg p-3"
-            disabled={raceStatus !== 'racing'}
+            placeholder={raceStatus === 'racing' ? "Start typing here..." : raceStatus === 'countdown' ? "Get ready..." : "Waiting for race to start..."}
+            className="mt-4 text-lg p-3 font-mono" // Added font-mono
+            disabled={raceStatus !== 'racing' || currentWordIndex >= promptWords.current.length}
             rows={2}
-            // autoFocus - focus is handled by startCountdown
+            // autoFocus - focus handled by startCountdown / countdown end
           />
         </CardContent>
       </Card>
 
       {raceStatus === 'waiting' && (
-        <Button onClick={startCountdown} size="lg" className="w-full py-6 text-xl">
+        <Button onClick={startCountdown} size="lg" className="w-full py-6 text-xl" disabled={eloLoading || currentUserElo === null}>
           <Zap className="mr-2 h-6 w-6" /> Start Race
         </Button>
       )}
@@ -339,8 +379,8 @@ function RacePageContent() {
       {raceStatus === 'finished' && showResults && (
         <RaceResultsDialog
           isOpen={showResults}
-          onClose={() => setShowResults(false)}
-          results={players}
+          onClose={handleCloseResults}
+          results={players} // Pass the final, ranked players
           currentUserElo={currentUserElo}
           eloChange={eloChange}
           onPlayAgain={handlePlayAgain}
@@ -368,3 +408,4 @@ export default function RacePage() {
     </Suspense>
   );
 }
+
