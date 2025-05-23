@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google'; // Changed font
 import './globals.css';
@@ -19,8 +18,57 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: 'Retro Type Wave',
-  description: 'A multiplayer typing race game with AI bots and a retro wave theme.',
+  title: 'Retro Type Wave - Fun Multiplayer Typing Game',
+  description: 'Improve your typing speed and accuracy with Retro Type Wave - a retro-themed multiplayer typing race game. Challenge AI opponents, track your progress with Elo ratings, and climb the global leaderboard!',
+  keywords: 'typing game, typing practice, typing speed, WPM, multiplayer typing, retro wave, typing test, keyboard practice, typing skills, typing competition',
+  authors: [{ name: 'Marc De Jesus', url: 'https://marcdejesusdev.com' }],
+  creator: 'Marc De Jesus',
+  publisher: 'Marc De Jesus',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://retrotypewave.com',
+    siteName: 'Retro Type Wave',
+    title: 'Retro Type Wave - Fun Multiplayer Typing Game',
+    description: 'Improve your typing speed and accuracy with Retro Type Wave - a retro-themed multiplayer typing race game. Challenge AI opponents, track your progress with Elo ratings, and climb the global leaderboard!',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Retro Type Wave - Multiplayer Typing Game',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Retro Type Wave - Fun Multiplayer Typing Game',
+    description: 'Improve your typing speed and accuracy with Retro Type Wave - a retro-themed multiplayer typing race game. Challenge AI opponents and climb the global leaderboard!',
+    images: ['/og-image.png'],
+    creator: '@marcdejesusdev',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  verification: {
+    google: 'your-google-site-verification-code', // You'll need to add this
+  },
+  alternates: {
+    canonical: 'https://retrotypewave.com',
+  },
 };
 
 export default function RootLayout({
