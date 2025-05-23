@@ -94,31 +94,37 @@ export function EloLeaderboard() {
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-1 pr-1">
-          {leaderboard.map((entry) => (
-            <li 
-              key={entry.id} 
-              className="flex items-center justify-between p-2 rounded-md bg-card/60 hover:bg-primary/10 transition-colors text-sm"
-            >
-              <div className="flex items-center space-x-2 overflow-hidden">
-                <span className={cn(
-                  "font-semibold w-6 text-center flex-shrink-0", 
-                  entry.rank === 1 ? "text-accent" : "text-muted-foreground"
-                )}>
-                  {entry.rank === 1 ? <Crown className="w-4 h-4 inline-block text-accent" /> : entry.rank}
-                </span>
-                <User className="w-4 h-4 text-muted-foreground flex-shrink-0" /> {/* Generic user icon */}
-                <span className="font-medium truncate" title={entry.username}>{entry.username}</span>
-              </div>
-              <div className="flex items-center space-x-3 flex-shrink-0">
-                <span className="font-bold text-primary text-right w-12">
-                  {entry.elo}
-                </span>
-                <span className="text-muted-foreground text-xs text-right w-16">
-                  ({entry.highestWpm} WPM)
-                </span>
-              </div>
-            </li>
-          ))}
+          {leaderboard.map((entry) => {
+            const rankDisplay = entry.rank === 1
+              ? <Crown className="w-4 h-4 inline-block text-accent" />
+              : (Number.isFinite(entry.rank) ? entry.rank : '-');
+
+            return (
+              <li 
+                key={entry.id} 
+                className="flex items-center justify-between p-2 rounded-md bg-card/60 hover:bg-primary/10 transition-colors text-sm"
+              >
+                <div className="flex items-center space-x-2 overflow-hidden">
+                  <span className={cn(
+                    "font-semibold w-6 text-center flex-shrink-0", 
+                    entry.rank === 1 ? "text-accent" : "text-muted-foreground"
+                  )}>
+                    {rankDisplay}
+                  </span>
+                  <User className="w-4 h-4 text-muted-foreground flex-shrink-0" /> {/* Generic user icon */}
+                  <span className="font-medium truncate" title={entry.username}>{entry.username || 'Anonymous'}</span>
+                </div>
+                <div className="flex items-center space-x-3 flex-shrink-0">
+                  <span className="font-bold text-primary text-right w-12">
+                    {Number.isFinite(entry.elo) ? entry.elo : 'N/A'}
+                  </span>
+                  <span className="text-muted-foreground text-xs text-right w-16">
+                    ({Number.isFinite(entry.highestWpm) ? entry.highestWpm : 'N/A'} WPM)
+                  </span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </CardContent>
     </Card>
