@@ -9,6 +9,7 @@ import AppProviders from '@/components/AppProviders';
 import { GameInstructions } from '@/components/GameInstructions';
 import { EloLeaderboard } from '@/components/EloLeaderboard';
 import { MusicPlayer } from '@/components/MusicPlayer'; // Import MusicPlayer
+import { SocialMediaLinks } from '@/components/SocialMediaLinks'; // Import SocialMediaLinks
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -41,7 +42,7 @@ export default function RootLayout({
             <aside className="hidden lg:flex flex-col w-60 p-4 border-r border-border bg-background overflow-y-auto">
               <div className="sticky top-4 flex flex-col space-y-4"> {/* Ensures content sticks and has spacing */}
                 <GameInstructions />
-                <MusicPlayer /> {/* Add MusicPlayer here */}
+                <MusicPlayer />
               </div>
             </aside>
 
@@ -52,10 +53,11 @@ export default function RootLayout({
               </div>
             </main>
 
-            {/* Right Sidebar (Leaderboard) - Hidden on small screens, sticky-like behavior */}
+            {/* Right Sidebar (Leaderboard & Social Media) - Hidden on small screens, sticky-like behavior */}
             <aside className="hidden lg:flex flex-col w-72 p-4 border-l border-border bg-background overflow-y-auto">
-              <div className="sticky top-4"> 
+              <div className="sticky top-4 flex flex-col space-y-4"> {/* Ensures content sticks and has spacing */}
                 <EloLeaderboard />
+                <SocialMediaLinks /> {/* Add SocialMediaLinks here */}
               </div>
             </aside>
           </div>
