@@ -21,9 +21,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="container max-w-7xl mx-auto flex h-20 items-center px-4 justify-between">
         {/* Left Group: Logo + Title - Takes natural width */}
-        <div className="flex items-center">
+        <div className="flex items-center h-12">
           <Link href="/" className="flex items-center space-x-2">
-            <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
+            <Image src="/logo.png" alt="Retro Type Wave Logo" width={56} height={56} className="text-primary" />
             <span className="font-bold sm:inline-block text-lg hidden md:block">
               Retro Type Wave
             </span>
@@ -50,18 +50,18 @@ export function SiteHeader() {
         </nav>
 
         {/* Right Group: Stats - Takes natural width */}
-        <div className="flex items-center">
+        <div className="flex items-center h-12">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-              <Trophy className="h-4 w-4 md:h-5 md:h-5" />
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-accent-foreground bg-accent px-3 py-2 rounded-md">
+              <Trophy className="h-4 w-4 md:h-5 md:w-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-10 md:h-5 md:w-12" />
               ) : (
                 <span>{elo ?? '...'} Elo</span>
               )}
             </div>
-            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-2 py-1 md:px-3 md:py-1.5 rounded-md">
-              <Zap className="h-4 w-4 md:h-5 md:h-5" />
+            <div className="flex items-center space-x-1 text-xs md:text-sm font-medium text-primary-foreground bg-primary/80 px-3 py-2 rounded-md">
+              <Zap className="h-4 w-4 md:h-5 md:w-5" />
               {isLoading ? (
                 <Skeleton className="h-4 w-8 md:h-5 md:w-10" />
               ) : (
