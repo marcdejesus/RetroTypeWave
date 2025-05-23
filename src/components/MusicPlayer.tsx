@@ -25,11 +25,9 @@ const initialPlaylist: Song[] = [
   { id: 3, name: "Every Day 80's", artist: "Wayne John Bradley", src: "/music/EveryDay80sbyWayneJohnBradley.mp3" },
   { id: 4, name: "Disco Metropolis", artist: "Vyra", src: "/music/DiscoMetropolisbyVyra.mp3"},
   { id: 5, name: "Defense Matrix", artist: "Vyra", src: "/music/DefenseMatrixByVyra.mp3"},
-  { id: 6, name: "Cyber Punk", artist: "jiglr", src:"/music/Cyberpunkbyjiglr"},
-  { id: 7, name: "NIGHT RIDER", artist: "jiglr", src: "/music/NIGHTRIDERByjiglr.mp3"},
-  { id: 8, name: "ESCAPE", artist: "Aries Beats", src: "/music/ESCAPEbyAriesBeats.mp3"},
-  { id: 9, name: "GREGORIAN CHANT", artist: "Aries Beats", src: "/music/GREGORIANCHANTbyAriesBeats.mp3"},
-  { id: 10, name: "NEON DRIVE", artist: "Ghostrifter", src:"/music/NEON_DRIVEByGhostrifter.mp3"}
+  { id: 6, name: "NIGHT RIDER", artist: "jiglr", src: "/music/NIGHTRIDERByjiglr.mp3"},
+  { id: 7, name: "ESCAPE", artist: "Aries Beats", src: "/music/ESCAPEbyAriesBeats.mp3"},
+  { id: 8, name: "NEON DRIVE", artist: "Ghostrifter", src:"/music/NEON_DRIVEByGhostrifter.mp3"}
 
 ];
 
