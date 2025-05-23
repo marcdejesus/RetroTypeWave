@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { SiteHeader } from '@/components/SiteHeader';
 import AppProviders from '@/components/AppProviders';
+import { AdPlaceholder } from '@/components/AdPlaceholder';
+import { EloLeaderboard } from '@/components/EloLeaderboard';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -33,9 +35,28 @@ export default function RootLayout({
       >
         <AppProviders>
           <SiteHeader />
-          <main className="flex-1 container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Sidebar (Ads) - Hidden on small screens, sticky-like behavior */}
+            <aside className="hidden lg:flex flex-col w-60 p-4 border-r border-border bg-background overflow-y-auto">
+              <div className="sticky top-4"> {/* Content within aside can be sticky */}
+                <AdPlaceholder />
+              </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-y-auto">
+              <div className="container mx-auto px-4 py-8">
+                {children}
+              </div>
+            </main>
+
+            {/* Right Sidebar (Leaderboard) - Hidden on small screens, sticky-like behavior */}
+            <aside className="hidden lg:flex flex-col w-72 p-4 border-l border-border bg-background overflow-y-auto">
+              <div className="sticky top-4"> {/* Content within aside can be sticky */}
+                <EloLeaderboard />
+              </div>
+            </aside>
+          </div>
           <Toaster />
         </AppProviders>
       </body>
