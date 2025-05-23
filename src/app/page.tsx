@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -33,11 +34,11 @@ export default function HomePage() {
       style={{ backgroundImage: "url('/retrowave-background.gif')" }}
       data-ai-hint="retrowave city sunset"
     >
-      {/* Card needs to be above any potential overlay if one were present */}
-      <Card className="w-full max-w-md z-10 bg-card/80 border-primary/50"> {/* Card still has some transparency */}
+      <Card className="w-full max-w-md z-10 bg-card/80 border-primary/50">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Zap className="w-16 h-16 text-primary" />
+            {/* Replace Zap icon with Image component */}
+            <Image src="/logo.png" alt="Retro Type Wave Logo" width={64} height={64} className="text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">Welcome to Retro Type Wave!</CardTitle>
           <CardDescription className="text-lg text-card-foreground/90">
