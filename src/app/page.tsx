@@ -35,12 +35,11 @@ export default function HomePage() {
           <div className="md:flex">
             <div className="md:w-1/2">
               <Image
-                src="https://placehold.co/600x400.png"
+                src="/whatisretrotypewave.png"
                 alt="Retro Type Wave Gameplay"
                 width={600}
                 height={400}
                 className="object-cover w-full h-full"
-                data-ai-hint="typing game interface"
               />
             </div>
             <div className="md:w-1/2 p-6 md:p-8">
@@ -113,12 +112,11 @@ export default function HomePage() {
           <div className="md:flex flex-row-reverse">
             <div className="md:w-1/2">
               <Image
-                src="https://placehold.co/600x400.png"
+                src="/social_and_competitive.png"
                 alt="Leaderboard and Elo"
                 width={600}
                 height={400}
                 className="object-cover w-full h-full"
-                data-ai-hint="game leaderboard trophy"
               />
             </div>
             <div className="md:w-1/2 p-6 md:p-8">
