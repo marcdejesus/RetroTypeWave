@@ -21,7 +21,7 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 relative z-10">
           <Image src="/logo.png" alt="Retro Type Wave Logo" width={320} height={320} className="mx-auto mb-6" />
-          <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-4 tracking-wider">
+          <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-4 tracking-wider">
             Welcome to Retro Type Wave!
           </h1>
           <p className="text-lg lg:text-xl text-foreground/90 max-w-2xl mx-auto mb-8">
