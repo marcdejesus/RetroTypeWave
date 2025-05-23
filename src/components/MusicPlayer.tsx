@@ -11,12 +11,14 @@ interface Song {
   id: number;
   name: string;
   artist: string;
-  src: string; // Path to the audio file in /public
+  src: string; // Path to the audio file in /public (e.g., /music/your-song.mp3)
   durationSeconds?: number; // Will be fetched from audio metadata
 }
 
-// IMPORTANT: Replace these with your actual song details and paths.
-// Ensure these files exist in your /public directory (e.g., /public/music/neon-cruiser.mp3)
+// IMPORTANT: Ensure these src paths correctly point to your audio files
+// located in the `public/music/` directory.
+// For example, if your file is at `public/music/neon-cruiser.mp3`,
+// the src path should be `/music/neon-cruiser.mp3`.
 const initialPlaylist: Song[] = [
   { id: 1, name: "Neon Cruiser", artist: "SynthWave Pro", src: "/music/neon-cruiser.mp3" },
   { id: 2, name: "Pixel Paradise", artist: "8-Bit Beast", src: "/music/pixel-paradise.mp3" },
@@ -46,7 +48,6 @@ export function MusicPlayer() {
   const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) {
       setCurrentSongDuration(audioRef.current.duration);
-      // Update duration in playlist state if needed (optional)
       setPlaylist(prev => prev.map((song, index) => 
         index === currentSongIndex ? { ...song, durationSeconds: audioRef.current?.duration } : song
       ));
@@ -61,9 +62,7 @@ export function MusicPlayer() {
   }, []);
 
   const handleSongEnd = useCallback(() => {
-    // Go to the next song, loop to beginning if at end of playlist
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-    // Note: isPlaying state will persist, so if it was playing, new song will auto play
   }, [playlist.length]);
 
   useEffect(() => {
@@ -83,41 +82,66 @@ export function MusicPlayer() {
 
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && currentSong?.src) { // Check if currentSong and src exist
       setIsLoadingMetadata(true);
       audioRef.current.src = currentSong.src;
-      audioRef.current.load(); // Important to load the new source
-      setCurrentTime(0); // Reset current time for new song
+      audioRef.current.load(); 
+      setCurrentTime(0); 
 
       if (isPlaying) {
-        audioRef.current.play().catch(error => console.error("Error playing audio:", error));
+        audioRef.current.play().catch(error => {
+          console.error("Error attempting to play audio:", error);
+          // Autoplay might be blocked, or media not ready.
+          // User might need to click play manually.
+          setIsPlaying(false); // Set isPlaying to false if play fails
+        });
       }
     }
-  }, [currentSong.src, isPlaying]); // Removed currentSongIndex from deps as currentSong.src covers it
+  }, [currentSong?.src, isPlaying]); // Depend on currentSong.src
 
   const handlePlayPause = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !currentSong?.src) return;
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(error => console.error("Error playing audio:", error));
+      audioRef.current.play().catch(error => {
+        console.error("Error playing audio on user action:", error);
+        // Optionally, provide user feedback here if play fails
+      });
     }
     setIsPlaying(!isPlaying);
   };
 
   const handleSkip = () => {
+    if (!currentSong?.src) return; // Don't skip if no current song
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   };
 
   const handleRestart = () => {
-    if (audioRef.current) {
+    if (audioRef.current && currentSong?.src) {
       audioRef.current.currentTime = 0;
       setCurrentTime(0);
       if (isPlaying) {
-         audioRef.current.play().catch(error => console.error("Error playing audio:", error));
+         audioRef.current.play().catch(error => console.error("Error restarting and playing audio:", error));
       }
     }
   };
+
+  if (!currentSong) { // Handle case where playlist might be empty or currentSong is undefined
+    return (
+      <Card className="h-full border-primary/30 shadow-md flex flex-col">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center text-lg text-primary">
+            <Music2 className="w-5 h-5 mr-2" />
+            Music Player
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center p-3">
+          <p className="text-muted-foreground">No songs in playlist.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-full border-primary/30 shadow-md flex flex-col">
