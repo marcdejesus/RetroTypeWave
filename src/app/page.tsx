@@ -11,14 +11,10 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="text-center py-12 lg:py-20 bg-card/30 rounded-lg shadow-xl border border-primary/30 overflow-hidden">
-        <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-            style={{ backgroundImage: "url('/retrowave-background.gif')" }}
-            data-ai-hint="retrowave city sunset"
-        ></div>
+      <section className="text-center py-12 lg:py-20 bg-background rounded-lg shadow-xl border border-primary/30 overflow-hidden">
+        {/* Removed the div with backgroundImage style to make background solid */}
         <div className="container mx-auto px-4 relative z-10">
-          <Image src="/logo.png" alt="Retro Type Wave Logo" width={180} height={180} className="mx-auto mb-6" />
+          <Image src="/logo.png" alt="Retro Type Wave Logo" width={320} height={320} className="mx-auto mb-6" />
           <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-4 tracking-wider">
             Welcome to Retro Type Wave!
           </h1>
