@@ -12,15 +12,15 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-20 items-center px-4"> {/* Increased header height to accommodate larger logo */}
-        <Link href="/" className="mr-6 flex items-center space-x-2">
+      <div className="container flex h-20 items-center justify-between px-4"> {/* Changed to justify-between */}
+        <Link href="/" className="flex items-center space-x-2"> {/* Removed mr-6 as justify-between handles spacing */}
           {/* Replace BotMessageSquare icon with Image component */}
           <Image src="/logo.png" alt="Retro Type Wave Logo" width={72} height={72} className="text-primary" />
           <span className="font-bold sm:inline-block text-lg">
             Retro Type Wave
           </span>
         </Link>
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex items-center space-x-4"> {/* Removed flex-1 and justify-end */}
           <div className="flex items-center space-x-1 text-sm font-medium text-accent-foreground bg-accent px-3 py-1.5 rounded-md">
             <Trophy className="h-5 w-5" />
             {isLoading ? (
@@ -42,4 +42,3 @@ export function SiteHeader() {
     </header>
   );
 }
-
