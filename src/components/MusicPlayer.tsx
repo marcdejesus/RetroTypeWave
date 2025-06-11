@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -86,9 +85,8 @@ export function MusicPlayer() {
     }
   }, [handleLoadedMetadata, handleTimeUpdate, handleSongEnd]);
 
-
   useEffect(() => {
-    if (audioRef.current && currentSong?.src) { // Check if currentSong and src exist
+    if (audioRef.current && currentSong?.src) {
       setIsLoadingMetadata(true);
       audioRef.current.src = currentSong.src;
       audioRef.current.load(); 
@@ -97,13 +95,11 @@ export function MusicPlayer() {
       if (isPlaying) {
         audioRef.current.play().catch(error => {
           console.error("Error attempting to play audio:", error);
-          // Autoplay might be blocked, or media not ready.
-          // User might need to click play manually.
-          setIsPlaying(false); // Set isPlaying to false if play fails
+          setIsPlaying(false);
         });
       }
     }
-  }, [currentSong?.src, isPlaying]); // Depend on currentSong.src
+  }, [currentSong?.src, isPlaying]);
 
   const handlePlayPause = () => {
     if (!audioRef.current || !currentSong?.src) return;
